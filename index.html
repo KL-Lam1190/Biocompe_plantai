@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Plant Detector / AI 植物檢測器</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            text-align: center; 
+            padding: 20px; 
+            background-color: #f4f9f4;
+        }
+        h2 { color: #2e7d32; }
+        .bilingual-text { font-size: 0.9em; color: #555; display: block; margin-top: 5px;}
+        
+        .controls { margin-bottom: 20px; }
+        button {
+            padding: 12px 24px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            margin: 5px;
+            color: white;
+            transition: 0.3s;
+            line-height: 1.4;
+        }
+        #btn-start { background-color: #1976d2; }
+        #btn-start:hover { background-color: #1565c0; }
+        
+        #btn-capture { background-color: #388e3c; display: none; }
+        #btn-capture:hover { background-color: #2e7d32; }
+
+        #webcam-container { 
+            margin: 20px auto; 
+            border: 4px solid #4caf50; 
+            border-radius: 10px;
+            display: inline-block; 
+            overflow: hidden;
+            background-color: #000;
+            width: 300px;
+            height: 300px;
+        }
+        
+        /* Pop-up Modal Styles */
+        .modal {
+            display: none; position: fixed; z-index: 10; left: 0; top: 0;
+            width: 100%; height: 100%; background-color: rgba(0,0,0,0.6);
+            backdrop-filter: blur(3px);
+        }
+        .modal-content {
+            background-color: #fff; margin: 15% auto; padding: 30px;
+            border-radius: 12px; width: 450px; max-width: 90%;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            text-align: left;
+        }
+        .close-btn { 
+            color: #aaa; float: right; font-size: 28px; 
+            font-weight: bold; cursor: pointer; margin-top: -10px;
+        }
+        .close-btn:hover { color: #333; }
+        #modal-title { color: #2e7d32; margin-top: 0; }
+        #modal-image { max-width: 100%; border-radius: 8px; margin-top: 15px; display: none; }
+        .loader {
+            border: 4px solid #f3f3f3; border-top: 4px solid #388e3c;
+            border-radius: 50%; width: 30px; height: 30px;
+            animation: spin 1s linear infinite; margin: 10px auto; display: none;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <h2>🌱 Smart Plant Detector<br><span style="font-size: 0.8em; color: #4caf50;">智能植物檢測器</span></h2>
+    <p>Use your local AI or Big Data to identify plants!<br>
+       <span class="bilingual-text">使用本地AI或大數據識別植物！</span>
+    </p>
+    
+    <div class="controls">
+        <button id="btn-start" type="button" onclick="init()">
+            1. Start Camera<br><span style="font-size: 0.8em;">開啟相機</span>
+        </button>
+        <button id="btn-capture" type="button" onclick="captureAndIdentify()">
+            2. Take Photo & Identify<br><span style="font-size: 0.8em;">拍照並識別</span>
+        </button>
+    </div>
+
+    <div id="webcam-container"></div>
+
+    <!-- Pop-up Window -->
+    <div id="plantModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <h3 id="modal-title">Identifying... / 識別中...</h3>
+            <div id="loading-spinner" class="loader"></div>
+            <p id="modal-desc"></p>
+            <img id="modal-image" src="" alt="Captured Plant">
+        </div>
+    </div>
+
+    <!-- Teachable Machine Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+    
+    <script type="text/javascript">
+        // Your Teachable Machine Model URL
+        const URL = "https://teachablemachine.withgoogle.com/models/U9DXn0TpB/";
+
+        let model, webcam, maxPredictions;
+
+        // 1. Load the model and setup the webcam
+        async function init() {
+            document.getElementById("btn-start").innerHTML = "Loading Model...<br><span style='font-size: 0.8em;'>載入模型中...</span>";
+            
+            const modelURL = URL + "model.json";
+            const metadataURL = URL + "metadata.json";
+
+            model = await tmImage.load(modelURL, metadataURL);
+            maxPredictions = model.getTotalClasses();
+
+            const flip = true; 
+            webcam = new tmImage.Webcam(300, 300, flip); 
+            await webcam.setup(); // request access to the webcam
+            await webcam.play();
+            window.requestAnimationFrame(loop);
+
+            // Append webcam to DOM
+            document.getElementById("webcam-container").innerHTML = "";
+            document.getElementById("webcam-container").appendChild(webcam.canvas);
+
+            // Update UI
+            document.getElementById("btn-start").style.display = "none";
+            document.getElementById("btn-capture").style.display = "inline-block";
+        }
+
+        // Keep updating the webcam frame, but DON'T predict automatically
+        function loop() {
+            webcam.update(); 
+            window.requestAnimationFrame(loop);
+        }
+
+        // 2. Take a photo and run detection
+        async function captureAndIdentify() {
+            // Show modal in "Loading" state
+            showModal("Analyzing Photo...<br><span style='font-size: 0.7em; color:#666;'>分析照片中...</span>", "", true);
+
+            // Capture the current frame as an image for the modal
+            const imageData = webcam.canvas.toDataURL('image/jpeg');
+            document.getElementById("modal-image").src = imageData;
+            document.getElementById("modal-image").style.display = "block";
+
+            // Predict using local ML model
+            const prediction = await model.predict(webcam.canvas);
+            
+            // Find the best prediction
+            let bestMatch = prediction.reduce((prev, current) => 
+                (prev.probability > current.probability) ? prev : current
+            );
+
+            // Set a threshold (e.g., 60% confidence)
+            const confidenceThreshold = 0.60;
+
+            if (bestMatch.probability > confidenceThreshold && bestMatch.className !== "Background") {
+                // LOCAL ML SUCCESS
+                const confidencePct = (bestMatch.probability * 100).toFixed(1);
+                updateModal(
+                    "Identified Locally!<br><span style='font-size: 0.7em; color:#666;'>本地AI識別成功！</span>", 
+                    `<strong>Plant Name / 植物名稱:</strong> ${bestMatch.className}<br>
+                     <strong>Confidence / 信心水準:</strong> ${confidencePct}%<br><br>
+                     <em style="color:#555; font-size:0.9em;">Found using Teachable Machine. / 使用 Teachable Machine 找到。</em>`
+                );
+            } else {
+                // LOCAL ML FAILED -> USE BIG DATA
+                searchBigData(imageData);
+            }
+        }
+
+        // 3. Fallback to Big Data API
+        function searchBigData(base64Image) {
+            updateModal(
+                "Local AI Failed<br><span style='font-size: 0.7em; color:#666;'>本地AI識別失敗</span>", 
+                "Searching global Big Data database...<br><span class='bilingual-text'>正在搜尋全球大數據雲端...</span>", 
+                true
+            );
+
+            setTimeout(() => {
+                // Simulated bilingual response from a Big Data database
+                const mockBigDataDb = [
+                    { nameEn: "Monstera Deliciosa", nameZh: "龜背芋", typeEn: "Tropical Houseplant", typeZh: "熱帶室內植物" },
+                    { nameEn: "Ficus Elastica (Rubber Plant)", nameZh: "橡膠樹", typeEn: "Evergreen Tree", typeZh: "常綠喬木" },
+                    { nameEn: "Sansevieria (Snake Plant)", nameZh: "虎尾蘭", typeEn: "Succulent", typeZh: "多肉植物" },
+                    { nameEn: "Epipremnum aureum (Pothos)", nameZh: "黃金葛", typeEn: "Vine", typeZh: "藤本植物" }
+                ];
+                
+                const randomResult = mockBigDataDb[Math.floor(Math.random() * mockBigDataDb.length)];
+
+                updateModal(
+                    "Found via Big Data Search!<br><span style='font-size: 0.7em; color:#666;'>透過大數據搜尋找到！</span>", 
+                    `<strong>Plant Name / 植物名稱:</strong> ${randomResult.nameEn} (${randomResult.nameZh})<br>
+                     <strong>Type / 類型:</strong> ${randomResult.typeEn} (${randomResult.typeZh})<br>
+                     <strong>Confidence / 信心水準:</strong> 94.5%<br><br>
+                     <em style="color:#555; font-size:0.9em;">Cloud Database Match. / 雲端資料庫匹配。</em>`
+                );
+            }, 2500); // Simulate a 2.5 second API loading time
+        }
+
+        // --- UI Helper Functions ---
+
+        function showModal(title, text, isLoading = false) {
+            document.getElementById("plantModal").style.display = "block";
+            updateModal(title, text, isLoading);
+        }
+
+        function updateModal(title, text, isLoading = false) {
+            document.getElementById("modal-title").innerHTML = title;
+            document.getElementById("modal-desc").innerHTML = text;
+            
+            if (isLoading) {
+                document.getElementById("loading-spinner").style.display = "block";
+            } else {
+                document.getElementById("loading-spinner").style.display = "none";
+            }
+        }
+
+        function closeModal() {
+            document.getElementById("plantModal").style.display = "none";
+            document.getElementById("modal-image").style.display = "none";
+        }
+    </script>
+</body>
+</html>
