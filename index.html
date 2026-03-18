@@ -1141,6 +1141,45 @@
             return (greenPixels / (tempCanvas.width * tempCanvas.height)) * 100;
         }
 
+        function analyzeColorVariance(imageSource) {
+            const tempCanvas = document.createElement("canvas");
+            const ctx = tempCanvas.getContext("2d");
+            tempCanvas.width = imageSource.width || imageSource.videoWidth || 360;
+            tempCanvas.height = imageSource.height || imageSource.videoHeight || 360;
+            if (tempCanvas.width === 0 || tempCanvas.height === 0) {
+                return { variance: 0, greenPct: 0 };
+            }
+
+            ctx.drawImage(imageSource, 0, 0, tempCanvas.width, tempCanvas.height);
+            const data = ctx.getImageData(0, 0, tempCanvas.width, tempCanvas.height).data;
+
+            let count = 0;
+            let sum = 0;
+            let sumSq = 0;
+            let greenPixels = 0;
+
+            for (let i = 0; i < data.length; i += 4) {
+                const r = data[i];
+                const g = data[i + 1];
+                const b = data[i + 2];
+                const brightness = 0.299 * r + 0.587 * g + 0.114 * b;
+
+                sum += brightness;
+                sumSq += brightness * brightness;
+                count += 1;
+
+                if (g > r * 1.05 && g > b * 1.05 && g > 30) {
+                    greenPixels += 1;
+                }
+            }
+
+            const mean = sum / count;
+            const variance = Math.max(0, sumSq / count - mean * mean);
+            const greenPct = (greenPixels / count) * 100;
+
+            return { variance, greenPct };
+        }
+
         function normalizePlantName(name) {
             return name.trim().replace(/\s+/g, " ").toLowerCase();
         }
@@ -1167,10 +1206,26 @@
                 return;
             }
 
+            const quality = analyzeColorVariance(imageSource);
+            const isFlatGreenSurface = quality.greenPct > 55 && quality.variance < 220;
+            if (isFlatGreenSurface) {
+                game.streak = 0;
+                renderStats();
+                updateModal(
+                    "Sorry, Not Able",
+                    "Sorry, it is not able to identify this image. It looks like a flat green surface, not a clear plant target."
+                );
+                showToast("Sorry, it is not able to identify this image.", true);
+                return;
+            }
+
             const prediction = await model.predict(imageSource);
             const bestMatch = prediction.reduce((prev, current) =>
                 (prev.probability > current.probability ? prev : current)
             );
+            const sortedPrediction = [...prediction].sort((a, b) => b.probability - a.probability);
+            const secondBest = sortedPrediction[1] || { probability: 0 };
+            const confidenceGap = bestMatch.probability - secondBest.probability;
 
             const matchName = bestMatch.className.toLowerCase();
             const isBackgroundClass =
@@ -1187,6 +1242,17 @@
                     "This scan cannot be used for mission unlock. Try a clearer plant image."
                 );
                 showToast("Sorry, it is not able to detect this as a plant.", true);
+                return;
+            }
+
+            if (bestMatch.probability < 0.65 || confidenceGap < 0.12) {
+                game.streak = 0;
+                renderStats();
+                updateModal(
+                    "Sorry, Not Able",
+                    "Sorry, it is not able to confidently identify this plant yet. Please move closer and use clearer lighting."
+                );
+                showToast("Low confidence. Please scan a clearer plant target.", true);
                 return;
             }
 
