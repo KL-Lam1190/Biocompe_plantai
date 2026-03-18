@@ -439,13 +439,19 @@
                 </div>
 
                 <div class="controls">
-                    <button id="btn-start" class="start-btn" type="button" onclick="init()">1. Start Camera</button>
-                    <button id="btn-capture" class="scan-btn" type="button" onclick="captureAndIdentify()">2. Scan Plant</button>
-                    <button id="btn-upload" class="upload-btn" type="button" onclick="document.getElementById('image-upload').click()">3. Upload Plant Photo</button>
+                    <button id="btn-tutorial" class="tutorial-btn" type="button" onclick="showTutorial()" style="background:#4b6b5f; color:#fff;">How to Use (Tutorial)</button>
+                    <hr style="width:100%; border:0; margin: 4px 0;">
+                    <select id="camera-select" style="padding:10px; border-radius:10px; border:1px solid #ccc; max-width:200px; display:none;" onchange="switchCamera()"></select>
+                    <button id="btn-start" class="start-btn" type="button" onclick="startCustomCamera()">Start Camera</button>
+                    <button id="btn-capture" class="scan-btn" type="button" onclick="captureAndIdentify()">Scan Plant</button>
+                    <button id="btn-upload" class="upload-btn" type="button" onclick="document.getElementById('image-upload').click()">Upload Plant Photo</button>
                     <input type="file" id="image-upload" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
                 </div>
 
-                <div id="webcam-container" class="camera-shell"></div>
+                <div id="webcam-container" class="camera-shell">
+                    <video id="webcam-video" autoplay playsinline style="width: 100%; height: 100%; object-fit: cover; display: none;"></video>
+                    <canvas id="snapshot-canvas" style="display: none;"></canvas>
+                </div>
             </section>
 
             <section class="panel">
@@ -468,6 +474,44 @@
         </div>
     </div>
 
+
+    <div id="tutorialModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-head">
+                <h3 style="margin:0; color:var(--deep-green);">How to Use</h3>
+                <button class="close-btn" type="button" onclick="document.getElementById('tutorialModal').style.display='none'">&times;</button>
+            </div>
+            <div style="margin-top: 15px; line-height: 1.6; color: #2f4d40;">
+                <p>Welcome to the Plant Mission Notebook!</p>
+                <ol>
+                    <li><strong>Start Camera:</strong> Click to turn on your device's camera. You can select different cameras (front/rear) from the dropdown above if available.</li>
+                    <li><strong>Scan Plant:</strong> Point the camera at a clear leaf or flower, then click Scan. The system ensures the image contains at least 40% green area.</li>
+                    <li><strong>Upload Photo:</strong> Alternatively, upload an existing plant photo from your gallery.</li>
+                    <li><strong>Unlock Profile:</strong> Once successfully scanned, ecological data (Hong Kong / China conservation status, flowering/fruiting info) will be synced to your Notebook.</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="tutorialModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-head">
+                <h3 style="margin:0; color:var(--deep-green);">How to Use</h3>
+                <button class="close-btn" type="button" onclick="document.getElementById('tutorialModal').style.display='none'">&times;</button>
+            </div>
+            <div style="margin-top: 15px; line-height: 1.6; color: #2f4d40;">
+                <p>Welcome to the Plant Mission Notebook!</p>
+                <ol>
+                    <li><strong>Start Camera:</strong> Click to turn on your device's camera. You can select different cameras (front/rear) from the dropdown above if available.</li>
+                    <li><strong>Scan Plant:</strong> Point the camera at a clear leaf or flower, then click Scan. The system ensures the image contains at least 40% green area.</li>
+                    <li><strong>Upload Photo:</strong> Alternatively, upload an existing plant photo from your gallery.</li>
+                    <li><strong>Unlock Profile:</strong> Once successfully scanned, ecological data (Hong Kong / China conservation status, flowering/fruiting info) will be synced to your Notebook.</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
     <div id="toast" class="toast"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
@@ -484,12 +528,61 @@
         ];
 
         const hongKongPlantCatalog = {
-            rose: {
-                type: "Flowering Shrub",
-                hkStatus: "Common cultivated ornamental in Hong Kong gardens.",
-                publicNote: "Check petal layers and thorn layout for easier recognition.",
+            "incense tree": {
+                type: "常綠喬木 (Evergreen Tree)",
+                shengTai: "常見於風水林及郊野叢林",
+                hua: "黃綠色、鐘形",
+                huaQi: "4月 - 5月",
+                guoShi: "卵形木質蒴果",
+                guoQi: "7月 - 8月",
+                hkStatus: "Native Native | Species of Conservation Concern",
+                hkRareCategory: "VU 易危",
+                cnRedBookCategory: "VU 易危",
+                publicNote: "土沉香 (Aquilaria sinensis) 是香港早期香木業重要樹種，野外群落受法例保護。",
+                rarePrecious: true,
+                rarityNote: "列入《國家重點保護野生植物名錄》."
+            },
+            "hong kong balsam": {
+                type: "草本植物 (Herb)",
+                shengTai: "生長於山谷林下潮濕地及溪邊",
+                hua: "紫紅色、形似漏斗",
+                huaQi: "8月 - 10月",
+                guoShi: "蒴果",
+                guoQi: "10月 - 11月",
+                hkStatus: "Endemic (香港特有種) | Species of Conservation Concern",
+                hkRareCategory: "EN 瀕危",
+                cnRedBookCategory: "未列入 (但受本地高度保護)",
+                publicNote: "香港鳳仙 (Impatiens hongkongensis) 首次在香港島發現，屬極受保護的本地特有品種。",
+                rarePrecious: true,
+                rarityNote: "香港特有種，受林務規例保護."
+            },
+            "grano": {
+                type: "常綠灌木或小喬木",
+                shengTai: "海岸及次生林邊緣",
+                hua: "白色或淡黃色小花",
+                huaQi: "春季",
+                guoShi: "核果，熟時黑紫色",
+                guoQi: "夏秋季",
+                hkStatus: "Native native species in specific coastal areas",
+                hkRareCategory: "LC 無危",
+                cnRedBookCategory: "LC 無危",
+                publicNote: "常見的灌木，果實為許多野鳥的食物來源。",
                 rarePrecious: false,
-                rarityNote: "Not usually listed as a rare or precious species in Hong Kong." 
+                rarityNote: "普遍野生品種，未列入稀有級別。"
+            },
+            rose: {
+                type: "灌木 (Flowering Shrub)",
+                shengTai: "廣泛栽培",
+                hua: "多種顏色",
+                huaQi: "幾乎全年",
+                guoShi: "薔薇果",
+                guoQi: "秋季",
+                hkStatus: "Common cultivated ornamental in Hong Kong gardens.",
+                hkRareCategory: "LC 無危",
+                cnRedBookCategory: "LC 無危",
+                publicNote: "園藝觀賞植物",
+                rarePrecious: false,
+                rarityNote: "外來引入培植種。" 
             },
             sunflower: {
                 type: "Flowering Annual",
@@ -572,7 +665,9 @@
             renderBook();
         }
 
-        async function loadModel() {
+        async function showTutorial() { document.getElementById('tutorialModal').style.display='block'; }
+
+        function loadModel() {
             if (model) {
                 return;
             }
@@ -582,23 +677,54 @@
             model = await tmImage.load(modelURL, metadataURL);
         }
 
-        async function init() {
+        let currentStream;
+
+        async function populateCameras() {
+            const select = document.getElementById("camera-select");
+            try {
+                if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) return;
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const videoDevices = devices.filter(device => device.kind === 'videoinput');
+                select.innerHTML = "";
+                if (videoDevices.length > 0) {
+                    select.style.display = "inline-block";
+                    videoDevices.forEach((device, index) => {
+                        const option = document.createElement("option");
+                        option.value = device.deviceId;
+                        option.text = device.label || `Camera ${index + 1}`;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (e) {
+                console.error("Camera enumerate error", e);
+            }
+        }
+
+        async function startCustomCamera(deviceId = null) {
             const startButton = document.getElementById("btn-start");
-            startButton.textContent = "Loading model...";
+            startButton.textContent = "Loading...";
 
             try {
                 await loadModel();
+                
+                if (currentStream) {
+                    currentStream.getTracks().forEach(track => track.stop());
+                }
 
-                if (!webcam) {
-                    const flip = true;
-                    webcam = new tmImage.Webcam(360, 360, flip);
-                    await webcam.setup();
-                    await webcam.play();
-                    loop();
-
-                    const webcamContainer = document.getElementById("webcam-container");
-                    webcamContainer.innerHTML = "";
-                    webcamContainer.appendChild(webcam.canvas);
+                const constraints = { video: deviceId ? { deviceId: { exact: deviceId } } : { facingMode: 'environment' } };
+                currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+                
+                const video = document.getElementById("webcam-video");
+                video.srcObject = currentStream;
+                video.style.display = "block";
+                
+                await new Promise((resolve) => {
+                    video.onloadedmetadata = () => resolve();
+                });
+                
+                // Populate cameras on first load
+                if (!deviceId) {
+                    await populateCameras();
                 }
 
                 startButton.style.display = "none";
@@ -606,30 +732,38 @@
                 showToast("Camera ready. Start your mission scan.");
             } catch (error) {
                 startButton.textContent = "Start Camera";
-                showToast("Cannot start camera. Check permission and try again.", true);
+                showToast("Cannot start camera. Check permission.", true);
             }
         }
 
-        function loop() {
-            if (!webcam) {
-                return;
+        async function switchCamera() {
+            const select = document.getElementById("camera-select");
+            const deviceId = select.value;
+            if (deviceId) {
+                await startCustomCamera(deviceId);
             }
-
-            webcam.update();
-            animationId = window.requestAnimationFrame(loop);
         }
 
         async function captureAndIdentify() {
-            if (!webcam || !webcam.canvas) {
+            const video = document.getElementById("webcam-video");
+            if (!video || !currentStream) {
                 showToast("Start camera first.", true);
                 return;
             }
 
-            showModal("Analyzing Plant...", "Checking your scan with Teachable Machine.", true);
-            const imageData = webcam.canvas.toDataURL("image/jpeg");
+            showModal("Analyzing Plant...", "Checking your scan.", true);
+            
+            const canvas = document.getElementById("snapshot-canvas");
+            canvas.width = video.videoWidth || 360;
+            canvas.height = video.videoHeight || 360;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            const imageData = canvas.toDataURL("image/jpeg");
             document.getElementById("modal-image").src = imageData;
             document.getElementById("modal-image").style.display = "block";
-            await runPrediction(webcam.canvas, imageData);
+            
+            await runPrediction(canvas, imageData);
         }
 
         async function handleImageUpload(event) {
@@ -655,6 +789,29 @@
                 };
             };
             reader.readAsDataURL(file);
+        }
+
+        
+        function calculateGreenPercentage(imageSource) {
+            const tempCanvas = document.createElement("canvas");
+            const ctx = tempCanvas.getContext("2d");
+            tempCanvas.width = imageSource.width || imageSource.videoWidth || 360;
+            tempCanvas.height = imageSource.height || imageSource.videoHeight || 360;
+            if (tempCanvas.width === 0 || tempCanvas.height === 0) return 100; // Skip if invalid
+            
+            ctx.drawImage(imageSource, 0, 0, tempCanvas.width, tempCanvas.height);
+            const data = ctx.getImageData(0, 0, tempCanvas.width, tempCanvas.height).data;
+            let greenPixels = 0;
+            for (let i = 0; i < data.length; i += 4) {
+                const r = data[i];
+                const g = data[i + 1];
+                const b = data[i + 2];
+                // basic green threshold
+                if (g > r * 1.05 && g > b * 1.05 && g > 30) {
+                    greenPixels++;
+                }
+            }
+            return (greenPixels / (tempCanvas.width * tempCanvas.height)) * 100;
         }
 
         function normalizePlantName(name) {
@@ -745,6 +902,16 @@
         }
 
         async function runPrediction(imageSource, imageData) {
+            const greenPct = calculateGreenPercentage(imageSource);
+            if (greenPct < 40) {
+                updateModal(
+                    "Not Enough Green / Not a Plant",
+                    `This photo has only ${greenPct.toFixed(1)}% green area. A plant photo must be >40% green.`
+                );
+                showToast("Not enough green.", true);
+                return;
+            }
+
             const prediction = await model.predict(imageSource);
             const bestMatch = prediction.reduce((prev, current) =>
                 (prev.probability > current.probability ? prev : current)
@@ -825,6 +992,13 @@
                 existing.publicNote = plantDetails.publicNote;
                 existing.rarePrecious = plantDetails.rarePrecious;
                 existing.rarityNote = plantDetails.rarityNote;
+                existing.shengTai = existing.shengTai || "陸生 / 常見";
+                existing.hua = existing.hua || "視乎品種";
+                existing.huaQi = existing.huaQi || "視乎品種";
+                existing.guoShi = existing.guoShi || "視乎品種";
+                existing.guoQi = existing.guoQi || "視乎品種";
+                existing.hkRareCategory = existing.hkRareCategory || (plantDetails.rarePrecious ? "VU 易危" : "LC 無危");
+                existing.cnRedBookCategory = existing.cnRedBookCategory || (plantDetails.rarePrecious ? "NT 近危" : "LC 無危");
                 if (confidence > existing.confidence) {
                     existing.confidence = confidence;
                     existing.imageData = imageData;
@@ -843,6 +1017,13 @@
                     publicNote: plantDetails.publicNote,
                     rarePrecious: plantDetails.rarePrecious,
                     rarityNote: plantDetails.rarityNote,
+                    shengTai: plantDetails.shengTai || "陸生 / 常見",
+                    hua: plantDetails.hua || "視乎品種",
+                    huaQi: plantDetails.huaQi || "視乎品種",
+                    guoShi: plantDetails.guoShi || "視乎品種",
+                    guoQi: plantDetails.guoQi || "視乎品種",
+                    hkRareCategory: plantDetails.hkRareCategory || (plantDetails.rarePrecious ? "VU 易危" : "LC 無危"),
+                    cnRedBookCategory: plantDetails.cnRedBookCategory || (plantDetails.rarePrecious ? "NT 近危" : "LC 無危"),
                     lastSeen: Date.now()
                 });
             }
@@ -907,7 +1088,18 @@
                         <h3 class="book-name">${plant.name}</h3>
                         <span class="book-type">Type: ${plant.type || "Flowering Plant (Unconfirmed Species)"}</span>
                         <span class="rare-tag ${plant.rarePrecious ? "is-rare" : ""}">Rare & Precious in HK: ${plant.rarePrecious ? "Yes" : "No"}</span>
-                        <p class="book-note">Best confidence: ${(plant.confidence * 100).toFixed(1)}%<br>Scans: ${plant.scanCount}<br>Mission note: ${plant.note}<br>Hong Kong status: ${plant.hkStatus}<br>Rare note: ${plant.rarityNote}<br>Public note: ${plant.publicNote}</p>
+                        <div class="book-note">
+                            <div>Best config: ${(plant.confidence * 100).toFixed(1)}% | Scans: ${plant.scanCount}</div>
+                            <hr style="border:0; border-top:1px dashed #c7dece; margin: 6px 0;">
+                            <strong>植物種類:</strong> ${plant.type || "植物"}<br>
+                            <strong>生態資料:</strong> ${plant.shengTai || "陸生 / 常見"}<br>
+                            <strong>花:</strong> ${plant.hua || "視乎品種"} | <strong>花期:</strong> ${plant.huaQi || "視乎品種"}<br>
+                            <strong>果實:</strong> ${plant.guoShi || "視乎品種"} | <strong>果期:</strong> ${plant.guoQi || "視乎品種"}<br>
+                            <strong>《香港稀有及珍貴植物》:</strong> ${plant.hkRareCategory || (plant.rarePrecious?"VU 易危":"LC 無危")}<br>
+                            <strong>《中國植物紅皮書》:</strong> ${plant.cnRedBookCategory || (plant.rarePrecious?"NT 近危":"LC 無危")}<br>
+                            <hr style="border:0; border-top:1px dashed #c7dece; margin: 6px 0;">
+                            <div><em>${plant.hkStatus}</em></div>
+                        </div>
                     </div>
                 </article>
             `).join("");

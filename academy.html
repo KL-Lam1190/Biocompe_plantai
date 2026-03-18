@@ -166,7 +166,19 @@
                     <article class="card">
                         <img src="${plant.imageData}" alt="${plant.name}" style="width:100%;height:160px;object-fit:cover;border-radius:10px;display:block;background:#dcebe2;">
                         <h2 style="margin-top:10px;">${plant.name}</h2>
-                        <p><strong>Plant type:</strong> ${type}<br><strong>Hong Kong status:</strong> ${hkStatus}<br><strong>Rare note:</strong> ${rarityNote}<br><strong>Best confidence:</strong> ${confidenceText}<br><strong>Scans:</strong> ${plant.scanCount || 1}<br><strong>Public note:</strong> ${publicNote}</p>
+                        <p>
+                        <strong>植物種類 (Plant type):</strong> ${type}<br>
+                        <strong>生態資料:</strong> ${plant.shengTai || "陸生 / 常見"}<br>
+                        <strong>花:</strong> ${plant.hua || "視乎品種"} | <strong>花期:</strong> ${plant.huaQi || "視乎品種"}<br>
+                        <strong>果實:</strong> ${plant.guoShi || "視乎品種"} | <strong>果期:</strong> ${plant.guoQi || "視乎品種"}<br>
+                        <strong>《香港稀有及珍貴植物》類別註解:</strong> ${plant.hkRareCategory || (rarePrecious?"VU 易危":"LC 無危")}<br>
+                        <strong>《中國植物紅皮書》類別註解:</strong> ${plant.cnRedBookCategory || (rarePrecious?"NT 近危":"LC 無危")}<br>
+                        <br>
+                        <strong>Hong Kong status:</strong> ${hkStatus}<br>
+                        <strong>Rare note:</strong> ${rarityNote}<br>
+                        <strong>Best confidence:</strong> ${confidenceText} | <strong>Scans:</strong> ${plant.scanCount || 1}<br>
+                        <strong>Public note:</strong> ${publicNote}
+                    </p>
                         <span class="badge">Mission note: ${plant.note || "N/A"}</span>
                         <span class="badge-rare">Rare & Precious in HK: ${rarePrecious ? "Yes" : "No"}</span>
                     </article>
