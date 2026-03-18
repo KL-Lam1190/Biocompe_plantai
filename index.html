@@ -3,284 +3,672 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Plant Detector / AI 植物檢測器</title>
+    <title>Plant Mission Academy</title>
     <style>
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            text-align: center; 
-            padding: 20px; 
-            background-color: #f4f9f4;
+        :root {
+            --deep-green: #114b37;
+            --leaf: #2c8f5d;
+            --mint: #cde8d8;
+            --sun: #f0bb4f;
+            --ink: #17332a;
+            --paper: #f8f7f1;
+            --danger: #b5382f;
+            --card-shadow: 0 10px 20px rgba(13, 55, 40, 0.15);
         }
-        h2 { color: #2e7d32; }
-        .bilingual-text { font-size: 0.9em; color: #555; display: block; margin-top: 5px;}
-        
-        .controls { margin-bottom: 20px; }
-        button {
-            padding: 12px 24px;
-            font-size: 16px;
-            cursor: pointer;
-            border: none;
-            border-radius: 5px;
-            margin: 5px;
-            color: white;
-            transition: 0.3s;
-            line-height: 1.4;
+
+        * {
+            box-sizing: border-box;
         }
-        #btn-start { background-color: #1976d2; }
-        #btn-start:hover { background-color: #1565c0; }
-        
-        #btn-capture { background-color: #388e3c; display: none; }
-        #btn-capture:hover { background-color: #2e7d32; }
 
-        #btn-upload { background-color: #f57c00; }
-        #btn-upload:hover { background-color: #e65100; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+            color: var(--ink);
+            background: radial-gradient(circle at 20% 20%, #fff7d6 0%, #f7f4e6 40%, #d5ebdf 100%);
+        }
 
-        #webcam-container { 
-            margin: 20px auto; 
-            border: 4px solid #4caf50; 
-            border-radius: 10px;
-            display: inline-block; 
+        .page {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px;
+            display: grid;
+            gap: 22px;
+        }
+
+        .hero {
+            border-radius: 18px;
+            background: linear-gradient(135deg, #1a5b43 0%, #2f8f5d 60%, #78b98f 100%);
+            color: #fff;
+            padding: 24px;
+            box-shadow: var(--card-shadow);
+            position: relative;
             overflow: hidden;
-            background-color: #000;
-            width: 300px;
-            height: 300px;
         }
-        
-        /* Pop-up Modal Styles */
-        .modal {
-            display: none; position: fixed; z-index: 10; left: 0; top: 0;
-            width: 100%; height: 100%; background-color: rgba(0,0,0,0.6);
-            backdrop-filter: blur(3px);
+
+        .hero::before {
+            content: "";
+            position: absolute;
+            width: 280px;
+            height: 280px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.08);
+            top: -80px;
+            right: -60px;
         }
-        .modal-content {
-            background-color: #fff; margin: 15% auto; padding: 30px;
-            border-radius: 12px; width: 450px; max-width: 90%;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+
+        .hero h1 {
+            margin: 0;
+            font-size: clamp(1.6rem, 2.8vw, 2.4rem);
+            letter-spacing: 0.3px;
+        }
+
+        .hero p {
+            margin: 10px 0 0;
+            max-width: 760px;
+            line-height: 1.45;
+            opacity: 0.95;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 20px;
+        }
+
+        .panel {
+            background: var(--paper);
+            border-radius: 16px;
+            padding: 18px;
+            box-shadow: var(--card-shadow);
+            border: 2px solid #d9e9de;
+        }
+
+        h2 {
+            margin: 0 0 10px;
+            font-size: 1.25rem;
+            color: var(--deep-green);
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        .chip {
+            background: #ecf6ef;
+            border-radius: 12px;
+            padding: 10px;
+            border: 1px solid #c8dfd1;
+        }
+
+        .chip strong {
+            display: block;
+            font-size: 1.3rem;
+            color: var(--deep-green);
+            margin-top: 4px;
+        }
+
+        .mission-box {
+            border: 2px dashed #86b99d;
+            border-radius: 14px;
+            padding: 14px;
+            background: #f4fbf7;
+        }
+
+        .mission-title {
+            margin: 0;
+            font-size: 1.1rem;
+        }
+
+        .mission-meta {
+            margin: 8px 0 0;
+            color: #3d5a50;
+            font-size: 0.95rem;
+        }
+
+        .progress-wrap {
+            margin-top: 12px;
+            background: #dceee2;
+            border-radius: 99px;
+            height: 12px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0;
+            background: linear-gradient(90deg, #31a06a, #f0bb4f);
+            transition: width 0.4s ease;
+        }
+
+        .controls {
+            margin-top: 14px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        button {
+            border: 0;
+            border-radius: 10px;
+            padding: 12px 16px;
+            font-size: 0.96rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s ease, filter 0.2s ease;
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+            filter: brightness(1.06);
+        }
+
+        .start-btn { background: #1f67c4; color: #fff; }
+        .scan-btn { background: var(--leaf); color: #fff; display: none; }
+        .upload-btn { background: #d67f1f; color: #fff; }
+
+        .camera-shell {
+            margin-top: 14px;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 4px solid #8cc4a6;
+            background: #1b1f1d;
+            width: min(100%, 360px);
+            aspect-ratio: 1/1;
+        }
+
+        .camera-shell canvas {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .book-grid {
+            margin-top: 12px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 12px;
+            max-height: 520px;
+            overflow: auto;
+            padding-right: 4px;
+        }
+
+        .book-card {
+            background: #fff;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #d4e7da;
+            box-shadow: 0 6px 12px rgba(18, 60, 45, 0.08);
+            animation: rise 0.35s ease;
+        }
+
+        .book-photo {
+            width: 100%;
+            height: 110px;
+            object-fit: cover;
+            display: block;
+            background: #dcebe2;
+        }
+
+        .book-body {
+            padding: 10px;
             text-align: left;
         }
-        .close-btn { 
-            color: #aaa; float: right; font-size: 28px; 
-            font-weight: bold; cursor: pointer; margin-top: -10px;
+
+        .book-name {
+            margin: 0;
+            font-size: 0.95rem;
+            color: #174231;
         }
-        .close-btn:hover { color: #333; }
-        #modal-title { color: #2e7d32; margin-top: 0; }
-        #modal-image { max-width: 100%; border-radius: 8px; margin-top: 15px; display: none; }
+
+        .book-note {
+            margin: 7px 0 0;
+            font-size: 0.82rem;
+            color: #4b6b5f;
+            line-height: 1.3;
+        }
+
+        .empty {
+            color: #557368;
+            background: #edf7f1;
+            border: 1px dashed #b6d3c3;
+            border-radius: 12px;
+            padding: 14px;
+            text-align: center;
+        }
+
+        .toast {
+            position: fixed;
+            left: 50%;
+            bottom: 24px;
+            transform: translateX(-50%);
+            background: #103b2c;
+            color: #fff;
+            padding: 12px 16px;
+            border-radius: 999px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+            z-index: 30;
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 20;
+            background: rgba(6, 20, 14, 0.7);
+            backdrop-filter: blur(4px);
+            padding: 20px;
+        }
+
+        .modal-content {
+            max-width: 520px;
+            margin: 8vh auto 0;
+            background: #fff;
+            border-radius: 16px;
+            padding: 20px;
+            border: 2px solid #d0e4d7;
+            box-shadow: 0 14px 24px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .close-btn {
+            cursor: pointer;
+            border: 0;
+            background: transparent;
+            font-size: 1.8rem;
+            color: #456;
+            line-height: 1;
+            padding: 0;
+        }
+
+        #modal-title {
+            margin: 0;
+            color: var(--deep-green);
+        }
+
+        #modal-desc {
+            color: #2f4d40;
+            line-height: 1.45;
+        }
+
+        #modal-image {
+            width: 100%;
+            border-radius: 10px;
+            display: none;
+            margin-top: 10px;
+            max-height: 260px;
+            object-fit: cover;
+        }
+
         .loader {
-            border: 4px solid #f3f3f3; border-top: 4px solid #388e3c;
-            border-radius: 50%; width: 30px; height: 30px;
-            animation: spin 1s linear infinite; margin: 10px auto; display: none;
+            border: 4px solid #eaf3ee;
+            border-top: 4px solid #2d915f;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 14px auto;
+            display: none;
         }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes rise {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 920px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
+
+            .book-grid {
+                max-height: initial;
+            }
+        }
     </style>
 </head>
 <body>
+    <div class="page">
+        <section class="hero">
+            <h1>Plant Mission Academy</h1>
+            <p>Scan plants with Teachable Machine, pass missions with correct identification, and unlock your own illustrated study book. This is a game and a learning web, not only search.</p>
+        </section>
 
-    <h2>🌱 Smart Plant Detector<br><span style="font-size: 0.8em; color: #4caf50;">智能植物檢測器</span></h2>
-    <p>Use your local AI or Big Data to identify plants!<br>
-       <span class="bilingual-text">使用已訓練AI或線上搜尋識別植物！</span>
-    </p>
-    
-    <div class="controls">
-        <button id="btn-start" type="button" onclick="init()">
-            1. Start Camera<br><span style="font-size: 0.8em;">開啟相機</span>
-        </button>
-        <button id="btn-capture" type="button" onclick="captureAndIdentify()">
-            2. Take Photo & Identify<br><span style="font-size: 0.8em;">拍照並識別</span>
-        </button>
-        <button id="btn-upload" type="button" onclick="document.getElementById('image-upload').click()">
-            3. Upload from Album<br><span style="font-size: 0.8em;">從相簿上傳</span>
-        </button>
-        <input type="file" id="image-upload" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
-    </div>
+        <div class="layout">
+            <section class="panel">
+                <h2>Mission Scanner</h2>
+                <div class="mission-box">
+                    <p id="mission-title" class="mission-title">Loading mission...</p>
+                    <p id="mission-meta" class="mission-meta"></p>
+                    <div class="progress-wrap" aria-label="Mission progress">
+                        <div id="mission-progress" class="progress-bar"></div>
+                    </div>
+                </div>
 
-    <div id="webcam-container"></div>
+                <div class="status-grid">
+                    <div class="chip">Points<strong id="points">0</strong></div>
+                    <div class="chip">Correct Streak<strong id="streak">0</strong></div>
+                    <div class="chip">Missions Done<strong id="missions-done">0</strong></div>
+                </div>
 
-    <!-- Pop-up Window -->
-    <div id="plantModal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn" onclick="closeModal()">&times;</span>
-            <h3 id="modal-title">Identifying... / 識別中...</h3>
-            <div id="loading-spinner" class="loader"></div>
-            <p id="modal-desc"></p>
-            <img id="modal-image" src="" alt="Captured Plant">
+                <div class="controls">
+                    <button id="btn-start" class="start-btn" type="button" onclick="init()">1. Start Camera</button>
+                    <button id="btn-capture" class="scan-btn" type="button" onclick="captureAndIdentify()">2. Scan Plant</button>
+                    <button id="btn-upload" class="upload-btn" type="button" onclick="document.getElementById('image-upload').click()">3. Upload Plant Photo</button>
+                    <input type="file" id="image-upload" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
+                </div>
+
+                <div id="webcam-container" class="camera-shell"></div>
+            </section>
+
+            <section class="panel">
+                <h2>Unlocked Plant Book</h2>
+                <p>Each correct scan adds a plant card with photo + study note.</p>
+                <div id="book-grid" class="book-grid"></div>
+            </section>
         </div>
     </div>
 
-    <!-- Teachable Machine Scripts -->
+    <div id="plantModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-head">
+                <h3 id="modal-title">Analyzing...</h3>
+                <button class="close-btn" type="button" onclick="closeModal()" aria-label="Close">&times;</button>
+            </div>
+            <div id="loading-spinner" class="loader"></div>
+            <p id="modal-desc"></p>
+            <img id="modal-image" src="" alt="Plant scan result image">
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
-    
     <script type="text/javascript">
-        // Your Teachable Machine Model URL
         const URL = "https://teachablemachine.withgoogle.com/models/M03FEtg0X/";
+        const BOOK_KEY = "plant-mission-book-v1";
 
-        let model, webcam, maxPredictions;
+        const missions = [
+            { id: 1, name: "Seedling Start", target: 1, minConfidence: 0.65, points: 15, note: "Observe leaf edge and shape." },
+            { id: 2, name: "Explorer Badge", target: 3, minConfidence: 0.70, points: 40, note: "Try different angle and lighting." },
+            { id: 3, name: "Field Scientist", target: 5, minConfidence: 0.75, points: 80, note: "Compare texture across species." },
+            { id: 4, name: "Botany Champion", target: 8, minConfidence: 0.78, points: 140, note: "Group plants by growth pattern." }
+        ];
 
-        // 1. Load the model and setup the webcam
-        async function init() {
-            document.getElementById("btn-start").innerHTML = "Loading Model...<br><span style='font-size: 0.8em;'>載入模型中...</span>";
-            
+        let model;
+        let webcam;
+        let animationId;
+        const game = {
+            missionIndex: 0,
+            missionProgress: 0,
+            points: 0,
+            streak: 0,
+            missionsDone: 0,
+            book: []
+        };
+
+        function getCurrentMission() {
+            return missions[Math.min(game.missionIndex, missions.length - 1)];
+        }
+
+        function initGame() {
+            loadBook();
+            renderMission();
+            renderStats();
+            renderBook();
+        }
+
+        async function loadModel() {
+            if (model) {
+                return;
+            }
+
             const modelURL = URL + "model.json";
             const metadataURL = URL + "metadata.json";
-
             model = await tmImage.load(modelURL, metadataURL);
-            maxPredictions = model.getTotalClasses();
-
-            const flip = true; 
-            webcam = new tmImage.Webcam(300, 300, flip); 
-            await webcam.setup(); // request access to the webcam
-            await webcam.play();
-            window.requestAnimationFrame(loop);
-
-            // Append webcam to DOM
-            document.getElementById("webcam-container").innerHTML = "";
-            document.getElementById("webcam-container").appendChild(webcam.canvas);
-
-            // Update UI
-            document.getElementById("btn-start").style.display = "none";
-            document.getElementById("btn-capture").style.display = "inline-block";
         }
 
-        // Keep updating the webcam frame, but DON'T predict automatically
+        async function init() {
+            const startButton = document.getElementById("btn-start");
+            startButton.textContent = "Loading model...";
+
+            try {
+                await loadModel();
+
+                if (!webcam) {
+                    const flip = true;
+                    webcam = new tmImage.Webcam(360, 360, flip);
+                    await webcam.setup();
+                    await webcam.play();
+                    loop();
+
+                    const webcamContainer = document.getElementById("webcam-container");
+                    webcamContainer.innerHTML = "";
+                    webcamContainer.appendChild(webcam.canvas);
+                }
+
+                startButton.style.display = "none";
+                document.getElementById("btn-capture").style.display = "inline-block";
+                showToast("Camera ready. Start your mission scan.");
+            } catch (error) {
+                startButton.textContent = "Start Camera";
+                showToast("Cannot start camera. Check permission and try again.", true);
+            }
+        }
+
         function loop() {
-            webcam.update(); 
-            window.requestAnimationFrame(loop);
+            if (!webcam) {
+                return;
+            }
+
+            webcam.update();
+            animationId = window.requestAnimationFrame(loop);
         }
 
-        // 2. Take a photo and run detection
         async function captureAndIdentify() {
-            // Show modal in "Loading" state
-            showModal("Analyzing Photo...<br><span style='font-size: 0.7em; color:#666;'>分析照片中...</span>", "", true);
+            if (!webcam || !webcam.canvas) {
+                showToast("Start camera first.", true);
+                return;
+            }
 
-            // Capture the current frame as an image for the modal
-            const imageData = webcam.canvas.toDataURL('image/jpeg');
+            showModal("Analyzing Plant...", "Checking your scan with Teachable Machine.", true);
+            const imageData = webcam.canvas.toDataURL("image/jpeg");
             document.getElementById("modal-image").src = imageData;
             document.getElementById("modal-image").style.display = "block";
-
-            runPrediction(webcam.canvas);
+            await runPrediction(webcam.canvas, imageData);
         }
 
-        // Handle Image Upload from Album
         async function handleImageUpload(event) {
             const file = event.target.files[0];
-            if (!file) return;
+            event.target.value = "";
 
-            // Ensure model is loaded first since users might click upload before clicking "Start Camera"
-            if (!model) {
-                const modelURL = URL + "model.json";
-                const metadataURL = URL + "metadata.json";
-                model = await tmImage.load(modelURL, metadataURL);
+            if (!file) {
+                return;
             }
 
-            // Show modal in "Loading" state
-            showModal("Analyzing Photo...<br><span style='font-size: 0.7em; color:#666;'>分析照片中...</span>", "", true);
+            await loadModel();
+            showModal("Analyzing Upload...", "Checking the uploaded image.", true);
 
             const reader = new FileReader();
-            reader.onload = function(e) {
-                const imgElement = document.createElement("img");
-                imgElement.src = e.target.result;
-                imgElement.onload = async function() {
-                    document.getElementById("modal-image").src = imgElement.src;
+            reader.onload = function readDone(e) {
+                const imageData = e.target.result;
+                const imgElement = new Image();
+                imgElement.src = imageData;
+                imgElement.onload = async function imageLoaded() {
+                    document.getElementById("modal-image").src = imageData;
                     document.getElementById("modal-image").style.display = "block";
-                    runPrediction(imgElement);
-                }
+                    await runPrediction(imgElement, imageData);
+                };
             };
             reader.readAsDataURL(file);
-            
-            // reset input
-            event.target.value = "";
         }
 
-        // Common prediction logic
-        async function runPrediction(imageSource) {
-            // Predict using local ML model
+        function normalizePlantName(name) {
+            return name.trim().replace(/\s+/g, " ").toLowerCase();
+        }
+
+        async function runPrediction(imageSource, imageData) {
             const prediction = await model.predict(imageSource);
-            
-            // Find the best single prediction
-            let bestMatch = prediction.reduce((prev, current) => 
-                (prev.probability > current.probability) ? prev : current
+            const bestMatch = prediction.reduce((prev, current) =>
+                (prev.probability > current.probability ? prev : current)
             );
 
-            // Make it easier to check for "background" or "none" classes (case insensitive)
             const matchName = bestMatch.className.toLowerCase();
-            const isBackgroundClass = matchName.includes("background") || 
-                                      matchName.includes("none") || 
-                                      matchName.includes("背景") || 
-                                      matchName.includes("無植物");
+            const isBackgroundClass =
+                matchName.includes("background") ||
+                matchName.includes("none") ||
+                matchName.includes("背景") ||
+                matchName.includes("無植物");
 
-            // Thresholds
-            const confidenceThreshold = 0.60;
+            if (isBackgroundClass || bestMatch.probability < 0.4) {
+                game.streak = 0;
+                renderStats();
+                updateModal(
+                    "No Valid Plant",
+                    "This scan cannot be used for mission unlock. Try a clearer plant image."
+                );
+                return;
+            }
 
-            if (isBackgroundClass) {
-                // Explicitly identified as background / none
+            const mission = getCurrentMission();
+            const confidence = bestMatch.probability;
+            const confidencePct = (confidence * 100).toFixed(1);
+            const isMissionSuccess = confidence >= mission.minConfidence;
+
+            if (isMissionSuccess) {
+                game.missionProgress += 1;
+                game.streak += 1;
+                game.points += 10;
+                addToBook(bestMatch.className, confidence, imageData, mission.note);
+
+                let unlockText = "";
+                if (game.missionProgress >= mission.target) {
+                    game.points += mission.points;
+                    game.missionsDone += 1;
+                    game.missionIndex = Math.min(game.missionIndex + 1, missions.length - 1);
+                    game.missionProgress = 0;
+                    unlockText = `<br><br><strong>Mission unlocked:</strong> ${mission.name} completed! Bonus +${mission.points} points.`;
+                    showToast("Mission unlocked. New mission available.");
+                } else {
+                    showToast("Correct scan. Plant added to your book.");
+                }
+
                 updateModal(
-                    "No Plant Detected<br><span style='font-size: 0.7em; color:#c62828;'>未偵測到植物</span>", 
-                    "<strong>Please take a plant photo.</strong><br><br><span class='bilingual-text'>請拍攝植物照片。</span>"
-                );
-            } else if (bestMatch.probability < 0.40) {
-                // AI is extremely confused (cannot detect clear object)
-                updateModal(
-                    "Object Not Detected<br><span style='font-size: 0.7em; color:#c62828;'>無法偵測清晰物件</span>", 
-                    "<strong>Cannot detect the plant or object clearly. Please take a plant photo.</strong><br><br><span class='bilingual-text'>無法清晰偵測到植物或物件。請拍攝植物照片。</span>"
-                );
-            } else if (bestMatch.probability > confidenceThreshold) {
-                // Is a plant AND knows exactly which one (Local ML Success)
-                const confidencePct = (bestMatch.probability * 100).toFixed(1);
-                updateModal(
-                    "Identified Locally!<br><span style='font-size: 0.7em; color:#666;'>AI識別成功！</span>", 
-                    `<strong>Plant Name / 植物名稱:</strong> ${bestMatch.className}<br>
-                     <strong>Confidence / 信心水準:</strong> ${confidencePct}%<br><br>
-                     <em style="color:#555; font-size:0.9em;">Found using Teachable Machine. / 使用 Teachable Machine 找到。</em>`
+                    "Correct Scan",
+                    `<strong>Plant:</strong> ${bestMatch.className}<br>
+                     <strong>Confidence:</strong> ${confidencePct}%<br>
+                     <strong>Mission success:</strong> Yes${unlockText}`
                 );
             } else {
-                // Is a plant, but local AI isn't sure which one -> USE BIG DATA
-                // We pass bestMatch to search with the most likely name
-                searchBigData(bestMatch.className);
+                game.streak = 0;
+                updateModal(
+                    "Close, But Not Enough",
+                    `<strong>Detected:</strong> ${bestMatch.className}<br>
+                     <strong>Confidence:</strong> ${confidencePct}%<br>
+                     <strong>Need:</strong> ${(mission.minConfidence * 100).toFixed(0)}% or above for this mission.<br><br>
+                     Try better light and focus for a stronger result.`
+                );
+                showToast("Scan not strong enough for mission unlock.", true);
+            }
+
+            renderMission();
+            renderStats();
+            renderBook();
+        }
+
+        function addToBook(name, confidence, imageData, note) {
+            const normalizedName = normalizePlantName(name);
+            const existing = game.book.find((item) => item.normalizedName === normalizedName);
+
+            if (existing) {
+                existing.scanCount += 1;
+                if (confidence > existing.confidence) {
+                    existing.confidence = confidence;
+                    existing.imageData = imageData;
+                }
+                existing.lastSeen = Date.now();
+            } else {
+                game.book.push({
+                    name,
+                    normalizedName,
+                    confidence,
+                    imageData,
+                    scanCount: 1,
+                    note,
+                    lastSeen: Date.now()
+                });
+            }
+
+            game.book.sort((a, b) => b.lastSeen - a.lastSeen);
+            localStorage.setItem(BOOK_KEY, JSON.stringify(game.book));
+        }
+
+        function loadBook() {
+            try {
+                const raw = localStorage.getItem(BOOK_KEY);
+                game.book = raw ? JSON.parse(raw) : [];
+            } catch (error) {
+                game.book = [];
             }
         }
 
-        // 3. Fallback to Big Data Search (Hong Kong Plant Database / Google)
-        function searchBigData(plantQuery) {
-            updateModal(
-                "Local AI Failed<br><span style='font-size: 0.7em; color:#666;'>本地AI識別信心不足</span>", 
-                "Searching Hong Kong Plant Database...<br><span class='bilingual-text'>正在搜尋香港植物資料庫及網際網路...</span>", 
-                true
-            );
+        function renderMission() {
+            const mission = getCurrentMission();
+            const progressText = `${game.missionProgress}/${mission.target}`;
+            const progressPct = Math.min(100, (game.missionProgress / mission.target) * 100);
 
-            // Clean up the query name (remove English or special characters if you have bilingual classes, e.g. "Rose 玫瑰")
-            const queryName = encodeURIComponent(plantQuery.trim());
-
-            // Simulated network request delay before offering the search link
-            setTimeout(() => {
-                // Create a real search link targeting the HK Herbarium or a general Google search targeting HK plant site
-                // We use Google site search on herbarium.gov.hk as their direct search requires form POST
-                const hkHerbariumSearchUrl = `https://www.google.com/search?q=${queryName}+site:herbarium.gov.hk`;
-                const generalSearchUrl = `https://www.google.com/search?q=${queryName}+植物`;
-
-                updateModal(
-                    "Search Big Data / 在線搜尋<br><span style='font-size: 0.7em; color:#1976d2;'>大數據比對</span>", 
-                    `<strong>Likely Name / 可能名稱:</strong> ${plantQuery}<br><br>
-                     <p>We are not 100% sure. Click below to search online databases:</p>
-                     <p class='bilingual-text'>我們無法完全確定。請點擊下方連結於線上資料庫查詢：</p>
-                     
-                     <div style="margin-top: 15px; display: flex; flex-direction: column; gap: 10px;">
-                        <a href="${hkHerbariumSearchUrl}" target="_blank" style="padding: 10px; background-color: #2e7d32; color: white; text-decoration: none; border-radius: 5px; text-align: center;">
-                            🔍 Search in HK Plant Database<br>
-                            <span style="font-size: 0.8em;">在香港植物資料庫中搜尋</span>
-                        </a>
-                        
-                        <a href="${generalSearchUrl}" target="_blank" style="padding: 10px; background-color: #1976d2; color: white; text-decoration: none; border-radius: 5px; text-align: center;">
-                            🌐 General Web Search<br>
-                            <span style="font-size: 0.8em;">一般網路搜尋</span>
-                        </a>
-                     </div>
-                     <br>
-                     <em style="color:#555; font-size:0.8em;">Redirecting to global Big Data / 導向至全球大數據</em>`
-                );
-            }, 2000); 
+            document.getElementById("mission-title").textContent = `Mission ${mission.id}: ${mission.name}`;
+            document.getElementById("mission-meta").textContent =
+                `Need ${mission.target} correct scans with ${(mission.minConfidence * 100).toFixed(0)}% confidence. Progress ${progressText}.`;
+            document.getElementById("mission-progress").style.width = `${progressPct}%`;
         }
 
-        // --- UI Helper Functions ---
+        function renderStats() {
+            document.getElementById("points").textContent = String(game.points);
+            document.getElementById("streak").textContent = String(game.streak);
+            document.getElementById("missions-done").textContent = String(game.missionsDone);
+        }
+
+        function renderBook() {
+            const grid = document.getElementById("book-grid");
+
+            if (!game.book.length) {
+                grid.innerHTML = '<div class="empty">No plant unlocked yet. Complete correct scans to fill your book.</div>';
+                return;
+            }
+
+            grid.innerHTML = game.book.map((plant) => `
+                <article class="book-card">
+                    <img class="book-photo" src="${plant.imageData}" alt="${plant.name}">
+                    <div class="book-body">
+                        <h3 class="book-name">${plant.name}</h3>
+                        <p class="book-note">Best confidence: ${(plant.confidence * 100).toFixed(1)}%<br>Scans: ${plant.scanCount}<br>${plant.note}</p>
+                    </div>
+                </article>
+            `).join("");
+        }
 
         function showModal(title, text, isLoading = false) {
             document.getElementById("plantModal").style.display = "block";
@@ -290,18 +678,33 @@
         function updateModal(title, text, isLoading = false) {
             document.getElementById("modal-title").innerHTML = title;
             document.getElementById("modal-desc").innerHTML = text;
-            
-            if (isLoading) {
-                document.getElementById("loading-spinner").style.display = "block";
-            } else {
-                document.getElementById("loading-spinner").style.display = "none";
-            }
+            document.getElementById("loading-spinner").style.display = isLoading ? "block" : "none";
         }
 
         function closeModal() {
             document.getElementById("plantModal").style.display = "none";
             document.getElementById("modal-image").style.display = "none";
         }
+
+        let toastTimer;
+        function showToast(text, isWarning = false) {
+            const toast = document.getElementById("toast");
+            toast.textContent = text;
+            toast.style.background = isWarning ? "#7f2f2a" : "#103b2c";
+            toast.classList.add("show");
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                toast.classList.remove("show");
+            }, 2100);
+        }
+
+        window.addEventListener("beforeunload", () => {
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+        });
+
+        initGame();
     </script>
 </body>
 </html>
