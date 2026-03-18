@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plant Mission Academy Guide</title>
+    <style>
+        :root {
+            --deep-green: #123f30;
+            --leaf: #2f8d61;
+            --soft: #edf7f1;
+            --sun: #f0bb4f;
+            --ink: #17342a;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+            color: var(--ink);
+            background: linear-gradient(150deg, #fff8de 0%, #e6f3ea 55%, #d2e9dd 100%);
+        }
+
+        .page {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        .top-nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: #103628;
+            background: #e9f4ec;
+            border: 1px solid #c0dcc8;
+            padding: 8px 12px;
+            border-radius: 999px;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .nav-link.active {
+            background: #113f2f;
+            border-color: #113f2f;
+            color: #fff;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #1c5d44, #3f9a6d);
+            color: #fff;
+            padding: 22px;
+            border-radius: 16px;
+            box-shadow: 0 10px 20px rgba(14, 57, 41, 0.15);
+        }
+
+        .hero h1 { margin: 0; }
+        .hero p { margin: 10px 0 0; line-height: 1.45; }
+
+        .grid {
+            margin-top: 16px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 12px;
+        }
+
+        .card {
+            border-radius: 14px;
+            background: #fff;
+            border: 2px solid #d3e6da;
+            padding: 14px;
+        }
+
+        .card h2 {
+            margin: 0;
+            font-size: 1.1rem;
+            color: var(--deep-green);
+        }
+
+        .card p {
+            margin: 8px 0 0;
+            line-height: 1.4;
+            font-size: 0.95rem;
+        }
+
+        .badge {
+            display: inline-block;
+            margin-top: 8px;
+            border-radius: 999px;
+            background: var(--soft);
+            border: 1px solid #cadfce;
+            padding: 3px 8px;
+            font-size: 0.8rem;
+            color: #2a5f48;
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <nav class="top-nav" aria-label="Main pages">
+            <a class="nav-link" href="index.html">Scanner Game</a>
+            <a class="nav-link active" href="academy.html">Academy Guide</a>
+            <a class="nav-link" href="product.html">About Product</a>
+        </nav>
+
+        <section class="hero">
+            <h1>Academy Guide</h1>
+            <p>This page helps students understand what each unlocked plant card means. In the Scanner Game, every correct scan stores a photo and also adds learning details like plant type and academy study direction.</p>
+        </section>
+
+        <section class="grid" aria-label="Plant academy categories">
+            <article class="card">
+                <h2>Flowering Shrub</h2>
+                <p>Focus on petals, stem texture, and pollinator behavior. Compare flower structure from different angles.</p>
+                <span class="badge">Examples: rose, hibiscus</span>
+            </article>
+            <article class="card">
+                <h2>Succulent</h2>
+                <p>Focus on water storage tissues and spine layout. Observe drought adaptation in shape and color.</p>
+                <span class="badge">Examples: cactus, aloe</span>
+            </article>
+            <article class="card">
+                <h2>Spore Plant</h2>
+                <p>Focus on frond segmentation and sori pattern. Learn how spore reproduction differs from flowering plants.</p>
+                <span class="badge">Examples: fern</span>
+            </article>
+            <article class="card">
+                <h2>Bryophyte</h2>
+                <p>Focus on moisture dependence and micro-habitat. Track how the colony expands after rain.</p>
+                <span class="badge">Examples: moss</span>
+            </article>
+            <article class="card">
+                <h2>Tree</h2>
+                <p>Focus on bark texture, branch architecture, and canopy shape. Compare young and mature growth forms.</p>
+                <span class="badge">Examples: oak, pine</span>
+            </article>
+            <article class="card">
+                <h2>Grass Family</h2>
+                <p>Focus on node spacing and blade veins. Observe response to sunlight and soil moisture changes.</p>
+                <span class="badge">Examples: grass, bamboo</span>
+            </article>
+        </section>
+    </div>
+</body>
+</html>

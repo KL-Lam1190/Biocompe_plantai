@@ -70,6 +70,36 @@
             opacity: 0.95;
         }
 
+        .top-nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: #103628;
+            background: #e9f4ec;
+            border: 1px solid #c0dcc8;
+            padding: 8px 12px;
+            border-radius: 999px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            transition: transform 0.2s ease, background 0.2s ease;
+        }
+
+        .nav-link:hover {
+            transform: translateY(-1px);
+            background: #f4fbf7;
+        }
+
+        .nav-link.active {
+            background: #113f2f;
+            border-color: #113f2f;
+            color: #fff;
+        }
+
         .layout {
             display: grid;
             grid-template-columns: 1.2fr 0.8fr;
@@ -231,6 +261,17 @@
             line-height: 1.3;
         }
 
+        .book-type {
+            margin-top: 6px;
+            display: inline-block;
+            font-size: 0.75rem;
+            padding: 3px 7px;
+            border-radius: 999px;
+            background: #e8f4ec;
+            color: #1f5d43;
+            border: 1px solid #c7dece;
+        }
+
         .empty {
             color: #557368;
             background: #edf7f1;
@@ -350,9 +391,15 @@
 </head>
 <body>
     <div class="page">
+        <nav class="top-nav" aria-label="Main pages">
+            <a class="nav-link active" href="index.html">Scanner Game</a>
+            <a class="nav-link" href="academy.html">Academy Guide</a>
+            <a class="nav-link" href="product.html">About Product</a>
+        </nav>
+
         <section class="hero">
             <h1>Plant Mission Academy</h1>
-            <p>Scan plants with Teachable Machine, pass missions with correct identification, and unlock your own illustrated study book. This is a game and a learning web, not only search.</p>
+            <p>Scan plants with Teachable Machine, pass missions with correct identification, and unlock your own illustrated study book with plant type and academy information.</p>
         </section>
 
         <div class="layout">
@@ -384,7 +431,7 @@
 
             <section class="panel">
                 <h2>Unlocked Plant Book</h2>
-                <p>Each correct scan adds a plant card with photo + study note.</p>
+                <p>Each correct scan adds a card with photo, plant type, and academy learning info.</p>
                 <div id="book-grid" class="book-grid"></div>
             </section>
         </div>
@@ -416,6 +463,39 @@
             { id: 3, name: "Field Scientist", target: 5, minConfidence: 0.75, points: 80, note: "Compare texture across species." },
             { id: 4, name: "Botany Champion", target: 8, minConfidence: 0.78, points: 140, note: "Group plants by growth pattern." }
         ];
+
+        const academyCatalog = {
+            rose: {
+                type: "Flowering Shrub",
+                academyInfo: "Academy focus: petal layers, thorn defense, and pollinator interactions.",
+                studyHint: "Compare flower color and thorn shape in morning light."
+            },
+            sunflower: {
+                type: "Flowering Annual",
+                academyInfo: "Academy focus: heliotropism and seed head pattern.",
+                studyHint: "Observe where the flower faces at different times of day."
+            },
+            cactus: {
+                type: "Succulent",
+                academyInfo: "Academy focus: water storage stems and spine adaptation.",
+                studyHint: "Check stem thickness and spine arrangement for classification."
+            },
+            fern: {
+                type: "Spore Plant",
+                academyInfo: "Academy focus: frond structure and spore sori placement.",
+                studyHint: "Look under fronds for tiny spore clusters."
+            },
+            moss: {
+                type: "Bryophyte",
+                academyInfo: "Academy focus: moisture ecology and colony growth behavior.",
+                studyHint: "Track how texture changes after rain."
+            },
+            orchid: {
+                type: "Flowering Epiphyte",
+                academyInfo: "Academy focus: root-air adaptation and complex flower shape.",
+                studyHint: "Compare lip shape and root thickness between varieties."
+            }
+        };
 
         let model;
         let webcam;
@@ -529,6 +609,37 @@
             return name.trim().replace(/\s+/g, " ").toLowerCase();
         }
 
+        function inferPlantTypeAndAcademy(name) {
+            const normalized = normalizePlantName(name);
+            const matchedKey = Object.keys(academyCatalog).find((key) => normalized.includes(key));
+
+            if (matchedKey) {
+                return academyCatalog[matchedKey];
+            }
+
+            if (normalized.includes("tree") || normalized.includes("oak") || normalized.includes("pine")) {
+                return {
+                    type: "Tree",
+                    academyInfo: "Academy focus: trunk, bark pattern, and branching strategy.",
+                    studyHint: "Observe leaf arrangement and bark texture."
+                };
+            }
+
+            if (normalized.includes("grass") || normalized.includes("bamboo")) {
+                return {
+                    type: "Grass Family",
+                    academyInfo: "Academy focus: blade veins and fast growth rhythm.",
+                    studyHint: "Compare node spacing and leaf blade width."
+                };
+            }
+
+            return {
+                type: "General Plant",
+                academyInfo: "Academy focus: identify leaf margin, vein style, and habitat clues.",
+                studyHint: "Capture one full-plant photo and one close-up for study."
+            };
+        }
+
         async function runPrediction(imageSource, imageData) {
             const prediction = await model.predict(imageSource);
             const bestMatch = prediction.reduce((prev, current) =>
@@ -599,11 +710,15 @@
         }
 
         function addToBook(name, confidence, imageData, note) {
+            const plantDetails = inferPlantTypeAndAcademy(name);
             const normalizedName = normalizePlantName(name);
             const existing = game.book.find((item) => item.normalizedName === normalizedName);
 
             if (existing) {
                 existing.scanCount += 1;
+                existing.type = plantDetails.type;
+                existing.academyInfo = plantDetails.academyInfo;
+                existing.studyHint = plantDetails.studyHint;
                 if (confidence > existing.confidence) {
                     existing.confidence = confidence;
                     existing.imageData = imageData;
@@ -617,6 +732,9 @@
                     imageData,
                     scanCount: 1,
                     note,
+                    type: plantDetails.type,
+                    academyInfo: plantDetails.academyInfo,
+                    studyHint: plantDetails.studyHint,
                     lastSeen: Date.now()
                 });
             }
@@ -629,6 +747,19 @@
             try {
                 const raw = localStorage.getItem(BOOK_KEY);
                 game.book = raw ? JSON.parse(raw) : [];
+                game.book = game.book.map((plant) => {
+                    if (!plant.type || !plant.academyInfo || !plant.studyHint) {
+                        const inferred = inferPlantTypeAndAcademy(plant.name || "Unknown Plant");
+                        return {
+                            ...plant,
+                            type: plant.type || inferred.type,
+                            academyInfo: plant.academyInfo || inferred.academyInfo,
+                            studyHint: plant.studyHint || inferred.studyHint
+                        };
+                    }
+
+                    return plant;
+                });
             } catch (error) {
                 game.book = [];
             }
@@ -664,7 +795,8 @@
                     <img class="book-photo" src="${plant.imageData}" alt="${plant.name}">
                     <div class="book-body">
                         <h3 class="book-name">${plant.name}</h3>
-                        <p class="book-note">Best confidence: ${(plant.confidence * 100).toFixed(1)}%<br>Scans: ${plant.scanCount}<br>${plant.note}</p>
+                        <span class="book-type">Type: ${plant.type || "General Plant"}</span>
+                        <p class="book-note">Best confidence: ${(plant.confidence * 100).toFixed(1)}%<br>Scans: ${plant.scanCount}<br>Mission note: ${plant.note}<br>Academy info: ${plant.academyInfo}<br>Study hint: ${plant.studyHint}</p>
                     </div>
                 </article>
             `).join("");

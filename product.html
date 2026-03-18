@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Plant Mission Academy</title>
+    <style>
+        :root {
+            --deep-green: #113f2f;
+            --paper: #f8f7f1;
+            --ink: #1a352c;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+            color: var(--ink);
+            background: radial-gradient(circle at 15% 10%, #fff4cd 0%, #f4f4ea 45%, #d9ece0 100%);
+        }
+
+        .page {
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        .top-nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: #103628;
+            background: #e9f4ec;
+            border: 1px solid #c0dcc8;
+            padding: 8px 12px;
+            border-radius: 999px;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .nav-link.active {
+            background: #113f2f;
+            border-color: #113f2f;
+            color: #fff;
+        }
+
+        .hero {
+            background: #fff;
+            border: 2px solid #d8e8dd;
+            border-radius: 18px;
+            padding: 20px;
+            box-shadow: 0 10px 20px rgba(19, 58, 43, 0.1);
+        }
+
+        .hero h1 { margin: 0; color: var(--deep-green); }
+        .hero p { margin: 10px 0 0; line-height: 1.5; }
+
+        .stack {
+            margin-top: 16px;
+            display: grid;
+            gap: 12px;
+        }
+
+        .block {
+            background: var(--paper);
+            border-radius: 14px;
+            border: 1px solid #d9e7dd;
+            padding: 14px;
+        }
+
+        .block h2 {
+            margin: 0;
+            font-size: 1.1rem;
+            color: #1f5f46;
+        }
+
+        .block p {
+            margin: 8px 0 0;
+            line-height: 1.45;
+            font-size: 0.96rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <nav class="top-nav" aria-label="Main pages">
+            <a class="nav-link" href="index.html">Scanner Game</a>
+            <a class="nav-link" href="academy.html">Academy Guide</a>
+            <a class="nav-link active" href="product.html">About Product</a>
+        </nav>
+
+        <section class="hero">
+            <h1>About Plant Mission Academy</h1>
+            <p>Plant Mission Academy is a study web and game where learners scan real plants using a Teachable Machine model. Correct scans unlock mission progress and create collectible Plant Book cards that combine photo evidence with classroom-ready study prompts.</p>
+        </section>
+
+        <section class="stack" aria-label="Product overview">
+            <article class="block">
+                <h2>Core Idea</h2>
+                <p>Instead of only searching online for plant names, users play through missions. Every scan is a challenge with confidence thresholds, rewards, and clear progression.</p>
+            </article>
+            <article class="block">
+                <h2>Learning Flow</h2>
+                <p>After each correct scan, the unlocked card stores the plant photo, type category, mission note, and academy info. Students can review these cards as a personal revision notebook.</p>
+            </article>
+            <article class="block">
+                <h2>Audience</h2>
+                <p>Designed for school projects, biology clubs, and beginner botany learners who need both motivation (game) and knowledge structure (academy guidance).</p>
+            </article>
+            <article class="block">
+                <h2>Technology</h2>
+                <p>Built as a front-end web app with TensorFlow.js and Teachable Machine image model inference in browser. Plant Book data is saved locally in the browser for quick access.</p>
+            </article>
+        </section>
+    </div>
+</body>
+</html>
