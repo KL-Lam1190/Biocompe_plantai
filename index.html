@@ -74,7 +74,7 @@
 
     <h2>🌱 Smart Plant Detector<br><span style="font-size: 0.8em; color: #4caf50;">智能植物檢測器</span></h2>
     <p>Use your local AI or Big Data to identify plants!<br>
-       <span class="bilingual-text">使用本地AI或大數據識別植物！</span>
+       <span class="bilingual-text">使用已訓練AI或線上搜尋識別植物！</span>
     </p>
     
     <div class="controls">
@@ -165,7 +165,7 @@
                 // LOCAL ML SUCCESS
                 const confidencePct = (bestMatch.probability * 100).toFixed(1);
                 updateModal(
-                    "Identified Locally!<br><span style='font-size: 0.7em; color:#666;'>本地AI識別成功！</span>", 
+                    "Identified Locally!<br><span style='font-size: 0.7em; color:#666;'>AI識別成功！</span>", 
                     `<strong>Plant Name / 植物名稱:</strong> ${bestMatch.className}<br>
                      <strong>Confidence / 信心水準:</strong> ${confidencePct}%<br><br>
                      <em style="color:#555; font-size:0.9em;">Found using Teachable Machine. / 使用 Teachable Machine 找到。</em>`
