@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Plant Mission Academy Guide</title>
+    <title>Plant Notebook Viewer</title>
     <style>
         :root {
             --deep-green: #123f30;
@@ -99,53 +99,82 @@
             font-size: 0.8rem;
             color: #2a5f48;
         }
+
+        .badge-rare {
+            display: inline-block;
+            margin-top: 8px;
+            margin-left: 6px;
+            border-radius: 999px;
+            background: #fff1dc;
+            border: 1px solid #dfc39f;
+            padding: 3px 8px;
+            font-size: 0.8rem;
+            color: #8a4d17;
+            font-weight: 700;
+        }
     </style>
 </head>
 <body>
     <div class="page">
         <nav class="top-nav" aria-label="Main pages">
             <a class="nav-link" href="index.html">Scanner Game</a>
-            <a class="nav-link active" href="academy.html">Academy Guide</a>
+            <a class="nav-link active" href="academy.html">Plant Notebook</a>
             <a class="nav-link" href="product.html">About Product</a>
         </nav>
 
         <section class="hero">
-            <h1>Academy Guide</h1>
-            <p>This page helps students understand what each unlocked plant card means. In the Scanner Game, every correct scan stores a photo and also adds learning details like plant type and academy study direction.</p>
+            <h1>Plant Notebook</h1>
+            <p>This page is for students and the public to view unlocked plants. Each card shows plant photo, plant type, and Hong Kong status notes so users can quickly know what kind of plant it is.</p>
         </section>
 
-        <section class="grid" aria-label="Plant academy categories">
-            <article class="card">
-                <h2>Flowering Shrub</h2>
-                <p>Focus on petals, stem texture, and pollinator behavior. Compare flower structure from different angles.</p>
-                <span class="badge">Examples: rose, hibiscus</span>
-            </article>
-            <article class="card">
-                <h2>Succulent</h2>
-                <p>Focus on water storage tissues and spine layout. Observe drought adaptation in shape and color.</p>
-                <span class="badge">Examples: cactus, aloe</span>
-            </article>
-            <article class="card">
-                <h2>Spore Plant</h2>
-                <p>Focus on frond segmentation and sori pattern. Learn how spore reproduction differs from flowering plants.</p>
-                <span class="badge">Examples: fern</span>
-            </article>
-            <article class="card">
-                <h2>Bryophyte</h2>
-                <p>Focus on moisture dependence and micro-habitat. Track how the colony expands after rain.</p>
-                <span class="badge">Examples: moss</span>
-            </article>
-            <article class="card">
-                <h2>Tree</h2>
-                <p>Focus on bark texture, branch architecture, and canopy shape. Compare young and mature growth forms.</p>
-                <span class="badge">Examples: oak, pine</span>
-            </article>
-            <article class="card">
-                <h2>Grass Family</h2>
-                <p>Focus on node spacing and blade veins. Observe response to sunlight and soil moisture changes.</p>
-                <span class="badge">Examples: grass, bamboo</span>
-            </article>
-        </section>
+        <section id="notebook-grid" class="grid" aria-label="Plant notebook cards"></section>
     </div>
+
+    <script>
+        const BOOK_KEY = "plant-mission-book-v1";
+
+        function loadNotebook() {
+            const grid = document.getElementById("notebook-grid");
+            let book = [];
+
+            try {
+                const raw = localStorage.getItem(BOOK_KEY);
+                book = raw ? JSON.parse(raw) : [];
+            } catch (error) {
+                book = [];
+            }
+
+            if (!book.length) {
+                grid.innerHTML = '<article class="card"><h2>No unlocked plant yet</h2><p>Go to Scanner Game, complete a correct plant scan, then come back to this notebook page.</p><span class="badge">Tip: upload a clear plant photo</span></article>';
+                return;
+            }
+
+            book.sort((a, b) => (b.lastSeen || 0) - (a.lastSeen || 0));
+            grid.innerHTML = book.map((plant) => {
+                const type = plant.type || "Flowering Plant (Unconfirmed Species)";
+                const hkStatus = plant.hkStatus || plant.academyInfo || "Hong Kong status pending detailed species confirmation.";
+                const publicNote = plant.publicNote || plant.studyHint || "Observe leaf shape and flower details for better identification.";
+                const rarePrecious = typeof plant.rarePrecious === "boolean"
+                    ? plant.rarePrecious
+                    : /conservation-sensitive|rare|precious/i.test(`${hkStatus} ${plant.rarityNote || ""}`);
+                const rarityNote = plant.rarityNote || (rarePrecious
+                    ? "Potentially rare/precious in Hong Kong. Verify exact species before handling."
+                    : "No rare/precious flag from current notebook data.");
+                const confidenceText = plant.confidence ? `${(plant.confidence * 100).toFixed(1)}%` : "N/A";
+
+                return `
+                    <article class="card">
+                        <img src="${plant.imageData}" alt="${plant.name}" style="width:100%;height:160px;object-fit:cover;border-radius:10px;display:block;background:#dcebe2;">
+                        <h2 style="margin-top:10px;">${plant.name}</h2>
+                        <p><strong>Plant type:</strong> ${type}<br><strong>Hong Kong status:</strong> ${hkStatus}<br><strong>Rare note:</strong> ${rarityNote}<br><strong>Best confidence:</strong> ${confidenceText}<br><strong>Scans:</strong> ${plant.scanCount || 1}<br><strong>Public note:</strong> ${publicNote}</p>
+                        <span class="badge">Mission note: ${plant.note || "N/A"}</span>
+                        <span class="badge-rare">Rare & Precious in HK: ${rarePrecious ? "Yes" : "No"}</span>
+                    </article>
+                `;
+            }).join("");
+        }
+
+        loadNotebook();
+    </script>
 </body>
 </html>

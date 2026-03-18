@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Plant Mission Academy</title>
+    <title>Plant Mission Notebook</title>
     <style>
         :root {
             --deep-green: #114b37;
@@ -272,6 +272,25 @@
             border: 1px solid #c7dece;
         }
 
+        .rare-tag {
+            margin-top: 6px;
+            margin-left: 4px;
+            display: inline-block;
+            font-size: 0.75rem;
+            padding: 3px 7px;
+            border-radius: 999px;
+            border: 1px solid #ddc6aa;
+            background: #fff2df;
+            color: #8a4d17;
+        }
+
+        .rare-tag.is-rare {
+            border-color: #cf9f69;
+            background: #ffe8cb;
+            color: #7f3f09;
+            font-weight: 700;
+        }
+
         .empty {
             color: #557368;
             background: #edf7f1;
@@ -393,13 +412,13 @@
     <div class="page">
         <nav class="top-nav" aria-label="Main pages">
             <a class="nav-link active" href="index.html">Scanner Game</a>
-            <a class="nav-link" href="academy.html">Academy Guide</a>
+            <a class="nav-link" href="academy.html">Plant Notebook</a>
             <a class="nav-link" href="product.html">About Product</a>
         </nav>
 
         <section class="hero">
-            <h1>Plant Mission Academy</h1>
-            <p>Scan plants with Teachable Machine, pass missions with correct identification, and unlock your own illustrated study book with plant type and academy information.</p>
+            <h1>Plant Mission Notebook</h1>
+            <p>Scan plants with Teachable Machine, pass missions with correct identification, and unlock a public-friendly notebook with plant type, plant photo, and Hong Kong status notes.</p>
         </section>
 
         <div class="layout">
@@ -431,7 +450,7 @@
 
             <section class="panel">
                 <h2>Unlocked Plant Book</h2>
-                <p>Each correct scan adds a card with photo, plant type, and academy learning info.</p>
+                <p>Each correct scan adds a card with photo, plant type, and Hong Kong status info for student/public use.</p>
                 <div id="book-grid" class="book-grid"></div>
             </section>
         </div>
@@ -464,36 +483,69 @@
             { id: 4, name: "Botany Champion", target: 8, minConfidence: 0.78, points: 140, note: "Group plants by growth pattern." }
         ];
 
-        const academyCatalog = {
+        const hongKongPlantCatalog = {
             rose: {
                 type: "Flowering Shrub",
-                academyInfo: "Academy focus: petal layers, thorn defense, and pollinator interactions.",
-                studyHint: "Compare flower color and thorn shape in morning light."
+                hkStatus: "Common cultivated ornamental in Hong Kong gardens.",
+                publicNote: "Check petal layers and thorn layout for easier recognition.",
+                rarePrecious: false,
+                rarityNote: "Not usually listed as a rare or precious species in Hong Kong." 
             },
             sunflower: {
                 type: "Flowering Annual",
-                academyInfo: "Academy focus: heliotropism and seed head pattern.",
-                studyHint: "Observe where the flower faces at different times of day."
+                hkStatus: "Introduced ornamental and educational planting species in Hong Kong.",
+                publicNote: "Observe if flower head orientation changes with sunlight.",
+                rarePrecious: false,
+                rarityNote: "Not usually listed as a rare or precious species in Hong Kong."
             },
             cactus: {
                 type: "Succulent",
-                academyInfo: "Academy focus: water storage stems and spine adaptation.",
-                studyHint: "Check stem thickness and spine arrangement for classification."
+                hkStatus: "Mostly cultivated exotic species in Hong Kong.",
+                publicNote: "Use stem shape and spine spacing to identify type.",
+                rarePrecious: false,
+                rarityNote: "Mostly ornamental imports; not generally rare in Hong Kong context."
             },
             fern: {
                 type: "Spore Plant",
-                academyInfo: "Academy focus: frond structure and spore sori placement.",
-                studyHint: "Look under fronds for tiny spore clusters."
+                hkStatus: "Many native fern species occur in humid Hong Kong habitats.",
+                publicNote: "Look below fronds for sori (spore clusters).",
+                rarePrecious: false,
+                rarityNote: "Some local fern species can be conservation-sensitive, species-level check needed."
             },
             moss: {
                 type: "Bryophyte",
-                academyInfo: "Academy focus: moisture ecology and colony growth behavior.",
-                studyHint: "Track how texture changes after rain."
+                hkStatus: "Common in damp shaded zones across Hong Kong.",
+                publicNote: "Texture and color shift after rain can help recognition.",
+                rarePrecious: false,
+                rarityNote: "Generally common micro-habitat plants; species-level rarity may vary."
             },
             orchid: {
                 type: "Flowering Epiphyte",
-                academyInfo: "Academy focus: root-air adaptation and complex flower shape.",
-                studyHint: "Compare lip shape and root thickness between varieties."
+                hkStatus: "Some wild orchids in Hong Kong are conservation-sensitive.",
+                publicNote: "Do not pick wild orchids; photograph and record location only.",
+                rarePrecious: true,
+                rarityNote: "Potentially rare/precious in Hong Kong; treat as conservation-sensitive."
+            },
+            bauhinia: {
+                type: "Flowering Tree",
+                hkStatus: "Iconic cultivated tree in Hong Kong urban landscapes.",
+                publicNote: "Leaf shape is usually butterfly-like with two rounded lobes.",
+                rarePrecious: false,
+                rarityNote: "Commonly planted in Hong Kong and not usually flagged as rare."
+            },
+            banyan: {
+                type: "Evergreen Tree",
+                hkStatus: "Common roadside and village tree in Hong Kong.",
+                publicNote: "Aerial roots and broad crown are key visual traits.",
+                rarePrecious: false,
+                rarityNote: "Common urban and village tree, not typically rare."
+            },
+            bamboo: {
+                type: "Grass Family",
+                hkStatus: "Widely cultivated and naturalized in parts of Hong Kong.",
+                publicNote: "Node spacing and cane color help separate species.",
+                rarePrecious: false,
+                rarityNote: "Usually not listed as rare in Hong Kong landscaping context."
             }
         };
 
@@ -609,34 +661,86 @@
             return name.trim().replace(/\s+/g, " ").toLowerCase();
         }
 
-        function inferPlantTypeAndAcademy(name) {
+        function inferPlantProfile(name) {
             const normalized = normalizePlantName(name);
-            const matchedKey = Object.keys(academyCatalog).find((key) => normalized.includes(key));
+            const matchedKey = Object.keys(hongKongPlantCatalog).find((key) => normalized.includes(key));
 
             if (matchedKey) {
-                return academyCatalog[matchedKey];
+                return hongKongPlantCatalog[matchedKey];
             }
 
             if (normalized.includes("tree") || normalized.includes("oak") || normalized.includes("pine")) {
                 return {
                     type: "Tree",
-                    academyInfo: "Academy focus: trunk, bark pattern, and branching strategy.",
-                    studyHint: "Observe leaf arrangement and bark texture."
+                    hkStatus: "Likely common native or cultivated tree group in Hong Kong (verify species).",
+                    publicNote: "Observe bark pattern and branching shape for identification.",
+                    rarePrecious: false,
+                    rarityNote: "Tree rarity depends on exact species; default is not rare until confirmed."
                 };
             }
 
             if (normalized.includes("grass") || normalized.includes("bamboo")) {
                 return {
                     type: "Grass Family",
-                    academyInfo: "Academy focus: blade veins and fast growth rhythm.",
-                    studyHint: "Compare node spacing and leaf blade width."
+                    hkStatus: "Likely cultivated or naturalized grass-group plant in Hong Kong.",
+                    publicNote: "Use node spacing and blade width as first clues.",
+                    rarePrecious: false,
+                    rarityNote: "Usually not classified as rare unless specific protected species is confirmed."
+                };
+            }
+
+            if (normalized.includes("shrub") || normalized.includes("bush")) {
+                return {
+                    type: "Shrub",
+                    hkStatus: "Likely ornamental or hillside shrub in Hong Kong.",
+                    publicNote: "Leaf edge and branching density are useful traits.",
+                    rarePrecious: false,
+                    rarityNote: "Not rare by default; species-level identification needed."
+                };
+            }
+
+            if (normalized.includes("flower") || normalized.includes("lily") || normalized.includes("hibiscus")) {
+                return {
+                    type: "Flowering Plant",
+                    hkStatus: "Often cultivated ornamental in Hong Kong parks or estates.",
+                    publicNote: "Compare petal count and stamen structure to refine species.",
+                    rarePrecious: false,
+                    rarityNote: "Most common ornamentals are not rare in Hong Kong."
+                };
+            }
+
+            if (normalized.includes("vine") || normalized.includes("creeper")) {
+                return {
+                    type: "Climber / Vine",
+                    hkStatus: "Found in gardens and woodland margins in Hong Kong.",
+                    publicNote: "Check climbing pattern and leaf arrangement on stems.",
+                    rarePrecious: false,
+                    rarityNote: "Not rare by default; some native climbers may need verification."
+                };
+            }
+
+            if (
+                normalized.includes("orchid") ||
+                normalized.includes("aquilaria") ||
+                normalized.includes("camellia") ||
+                normalized.includes("pitcher") ||
+                normalized.includes("cycad")
+            ) {
+                return {
+                    type: "Potentially Sensitive Species",
+                    hkStatus: "Possible conservation-sensitive species in Hong Kong.",
+                    publicNote: "Do not collect from wild; use photo records and verify through official references.",
+                    rarePrecious: true,
+                    rarityNote: "Potentially rare/precious in Hong Kong pending exact species confirmation."
                 };
             }
 
             return {
-                type: "General Plant",
-                academyInfo: "Academy focus: identify leaf margin, vein style, and habitat clues.",
-                studyHint: "Capture one full-plant photo and one close-up for study."
+                type: "Flowering Plant (Unconfirmed Species)",
+                hkStatus: "Hong Kong status pending detailed species confirmation.",
+                publicNote: "Take one full-plant photo and one close-up leaf photo for better identification.",
+                rarePrecious: false,
+                rarityNote: "Rare/precious status unknown until species is verified."
             };
         }
 
@@ -710,15 +814,17 @@
         }
 
         function addToBook(name, confidence, imageData, note) {
-            const plantDetails = inferPlantTypeAndAcademy(name);
+            const plantDetails = inferPlantProfile(name);
             const normalizedName = normalizePlantName(name);
             const existing = game.book.find((item) => item.normalizedName === normalizedName);
 
             if (existing) {
                 existing.scanCount += 1;
                 existing.type = plantDetails.type;
-                existing.academyInfo = plantDetails.academyInfo;
-                existing.studyHint = plantDetails.studyHint;
+                existing.hkStatus = plantDetails.hkStatus;
+                existing.publicNote = plantDetails.publicNote;
+                existing.rarePrecious = plantDetails.rarePrecious;
+                existing.rarityNote = plantDetails.rarityNote;
                 if (confidence > existing.confidence) {
                     existing.confidence = confidence;
                     existing.imageData = imageData;
@@ -733,8 +839,10 @@
                     scanCount: 1,
                     note,
                     type: plantDetails.type,
-                    academyInfo: plantDetails.academyInfo,
-                    studyHint: plantDetails.studyHint,
+                    hkStatus: plantDetails.hkStatus,
+                    publicNote: plantDetails.publicNote,
+                    rarePrecious: plantDetails.rarePrecious,
+                    rarityNote: plantDetails.rarityNote,
                     lastSeen: Date.now()
                 });
             }
@@ -748,13 +856,15 @@
                 const raw = localStorage.getItem(BOOK_KEY);
                 game.book = raw ? JSON.parse(raw) : [];
                 game.book = game.book.map((plant) => {
-                    if (!plant.type || !plant.academyInfo || !plant.studyHint) {
-                        const inferred = inferPlantTypeAndAcademy(plant.name || "Unknown Plant");
+                    if (!plant.type || !plant.hkStatus || !plant.publicNote || typeof plant.rarePrecious !== "boolean" || !plant.rarityNote) {
+                        const inferred = inferPlantProfile(plant.name || "Unknown Plant");
                         return {
                             ...plant,
                             type: plant.type || inferred.type,
-                            academyInfo: plant.academyInfo || inferred.academyInfo,
-                            studyHint: plant.studyHint || inferred.studyHint
+                            hkStatus: plant.hkStatus || plant.academyInfo || inferred.hkStatus,
+                            publicNote: plant.publicNote || plant.studyHint || inferred.publicNote,
+                            rarePrecious: typeof plant.rarePrecious === "boolean" ? plant.rarePrecious : inferred.rarePrecious,
+                            rarityNote: plant.rarityNote || inferred.rarityNote
                         };
                     }
 
@@ -795,8 +905,9 @@
                     <img class="book-photo" src="${plant.imageData}" alt="${plant.name}">
                     <div class="book-body">
                         <h3 class="book-name">${plant.name}</h3>
-                        <span class="book-type">Type: ${plant.type || "General Plant"}</span>
-                        <p class="book-note">Best confidence: ${(plant.confidence * 100).toFixed(1)}%<br>Scans: ${plant.scanCount}<br>Mission note: ${plant.note}<br>Academy info: ${plant.academyInfo}<br>Study hint: ${plant.studyHint}</p>
+                        <span class="book-type">Type: ${plant.type || "Flowering Plant (Unconfirmed Species)"}</span>
+                        <span class="rare-tag ${plant.rarePrecious ? "is-rare" : ""}">Rare & Precious in HK: ${plant.rarePrecious ? "Yes" : "No"}</span>
+                        <p class="book-note">Best confidence: ${(plant.confidence * 100).toFixed(1)}%<br>Scans: ${plant.scanCount}<br>Mission note: ${plant.note}<br>Hong Kong status: ${plant.hkStatus}<br>Rare note: ${plant.rarityNote}<br>Public note: ${plant.publicNote}</p>
                     </div>
                 </article>
             `).join("");
