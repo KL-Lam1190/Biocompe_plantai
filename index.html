@@ -32,6 +32,9 @@
         #btn-capture { background-color: #388e3c; display: none; }
         #btn-capture:hover { background-color: #2e7d32; }
 
+        #btn-upload { background-color: #f57c00; }
+        #btn-upload:hover { background-color: #e65100; }
+
         #webcam-container { 
             margin: 20px auto; 
             border: 4px solid #4caf50; 
@@ -84,6 +87,10 @@
         <button id="btn-capture" type="button" onclick="captureAndIdentify()">
             2. Take Photo & Identify<br><span style="font-size: 0.8em;">拍照並識別</span>
         </button>
+        <button id="btn-upload" type="button" onclick="document.getElementById('image-upload').click()">
+            3. Upload from Album<br><span style="font-size: 0.8em;">從相簿上傳</span>
+        </button>
+        <input type="file" id="image-upload" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
     </div>
 
     <div id="webcam-container"></div>
@@ -105,7 +112,7 @@
     
     <script type="text/javascript">
         // Your Teachable Machine Model URL
-        const URL = "https://teachablemachine.withgoogle.com/models/U9DXn0TpB/";
+        const URL = "https://teachablemachine.withgoogle.com/models/M03FEtg0X/";
 
         let model, webcam, maxPredictions;
 
@@ -150,19 +157,74 @@
             document.getElementById("modal-image").src = imageData;
             document.getElementById("modal-image").style.display = "block";
 
-            // Predict using local ML model
-            const prediction = await model.predict(webcam.canvas);
+            runPrediction(webcam.canvas);
+        }
+
+        // Handle Image Upload from Album
+        async function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // Ensure model is loaded first since users might click upload before clicking "Start Camera"
+            if (!model) {
+                const modelURL = URL + "model.json";
+                const metadataURL = URL + "metadata.json";
+                model = await tmImage.load(modelURL, metadataURL);
+            }
+
+            // Show modal in "Loading" state
+            showModal("Analyzing Photo...<br><span style='font-size: 0.7em; color:#666;'>分析照片中...</span>", "", true);
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const imgElement = document.createElement("img");
+                imgElement.src = e.target.result;
+                imgElement.onload = async function() {
+                    document.getElementById("modal-image").src = imgElement.src;
+                    document.getElementById("modal-image").style.display = "block";
+                    runPrediction(imgElement);
+                }
+            };
+            reader.readAsDataURL(file);
             
-            // Find the best prediction
+            // reset input
+            event.target.value = "";
+        }
+
+        // Common prediction logic
+        async function runPrediction(imageSource) {
+            // Predict using local ML model
+            const prediction = await model.predict(imageSource);
+            
+            // Find the best single prediction
             let bestMatch = prediction.reduce((prev, current) => 
                 (prev.probability > current.probability) ? prev : current
             );
 
-            // Set a threshold (e.g., 60% confidence)
+            // Make it easier to check for "background" or "none" classes (case insensitive)
+            const matchName = bestMatch.className.toLowerCase();
+            const isBackgroundClass = matchName.includes("background") || 
+                                      matchName.includes("none") || 
+                                      matchName.includes("背景") || 
+                                      matchName.includes("無植物");
+
+            // Thresholds
             const confidenceThreshold = 0.60;
 
-            if (bestMatch.probability > confidenceThreshold && bestMatch.className !== "Background") {
-                // LOCAL ML SUCCESS
+            if (isBackgroundClass) {
+                // Explicitly identified as background / none
+                updateModal(
+                    "No Plant Detected<br><span style='font-size: 0.7em; color:#c62828;'>未偵測到植物</span>", 
+                    "<strong>Please take a plant photo.</strong><br><br><span class='bilingual-text'>請拍攝植物照片。</span>"
+                );
+            } else if (bestMatch.probability < 0.40) {
+                // AI is extremely confused (cannot detect clear object)
+                updateModal(
+                    "Object Not Detected<br><span style='font-size: 0.7em; color:#c62828;'>無法偵測清晰物件</span>", 
+                    "<strong>Cannot detect the plant or object clearly. Please take a plant photo.</strong><br><br><span class='bilingual-text'>無法清晰偵測到植物或物件。請拍攝植物照片。</span>"
+                );
+            } else if (bestMatch.probability > confidenceThreshold) {
+                // Is a plant AND knows exactly which one (Local ML Success)
                 const confidencePct = (bestMatch.probability * 100).toFixed(1);
                 updateModal(
                     "Identified Locally!<br><span style='font-size: 0.7em; color:#666;'>AI識別成功！</span>", 
@@ -171,38 +233,51 @@
                      <em style="color:#555; font-size:0.9em;">Found using Teachable Machine. / 使用 Teachable Machine 找到。</em>`
                 );
             } else {
-                // LOCAL ML FAILED -> USE BIG DATA
-                searchBigData(imageData);
+                // Is a plant, but local AI isn't sure which one -> USE BIG DATA
+                // We pass bestMatch to search with the most likely name
+                searchBigData(bestMatch.className);
             }
         }
 
-        // 3. Fallback to Big Data API
-        function searchBigData(base64Image) {
+        // 3. Fallback to Big Data Search (Hong Kong Plant Database / Google)
+        function searchBigData(plantQuery) {
             updateModal(
-                "Local AI Failed<br><span style='font-size: 0.7em; color:#666;'>本地AI識別失敗</span>", 
-                "Searching global Big Data database...<br><span class='bilingual-text'>正在搜尋全球大數據雲端...</span>", 
+                "Local AI Failed<br><span style='font-size: 0.7em; color:#666;'>本地AI識別信心不足</span>", 
+                "Searching Hong Kong Plant Database...<br><span class='bilingual-text'>正在搜尋香港植物資料庫及網際網路...</span>", 
                 true
             );
 
+            // Clean up the query name (remove English or special characters if you have bilingual classes, e.g. "Rose 玫瑰")
+            const queryName = encodeURIComponent(plantQuery.trim());
+
+            // Simulated network request delay before offering the search link
             setTimeout(() => {
-                // Simulated bilingual response from a Big Data database
-                const mockBigDataDb = [
-                    { nameEn: "Monstera Deliciosa", nameZh: "龜背芋", typeEn: "Tropical Houseplant", typeZh: "熱帶室內植物" },
-                    { nameEn: "Ficus Elastica (Rubber Plant)", nameZh: "橡膠樹", typeEn: "Evergreen Tree", typeZh: "常綠喬木" },
-                    { nameEn: "Sansevieria (Snake Plant)", nameZh: "虎尾蘭", typeEn: "Succulent", typeZh: "多肉植物" },
-                    { nameEn: "Epipremnum aureum (Pothos)", nameZh: "黃金葛", typeEn: "Vine", typeZh: "藤本植物" }
-                ];
-                
-                const randomResult = mockBigDataDb[Math.floor(Math.random() * mockBigDataDb.length)];
+                // Create a real search link targeting the HK Herbarium or a general Google search targeting HK plant site
+                // We use Google site search on herbarium.gov.hk as their direct search requires form POST
+                const hkHerbariumSearchUrl = `https://www.google.com/search?q=${queryName}+site:herbarium.gov.hk`;
+                const generalSearchUrl = `https://www.google.com/search?q=${queryName}+植物`;
 
                 updateModal(
-                    "Found via Big Data Search!<br><span style='font-size: 0.7em; color:#666;'>透過大數據搜尋找到！</span>", 
-                    `<strong>Plant Name / 植物名稱:</strong> ${randomResult.nameEn} (${randomResult.nameZh})<br>
-                     <strong>Type / 類型:</strong> ${randomResult.typeEn} (${randomResult.typeZh})<br>
-                     <strong>Confidence / 信心水準:</strong> 94.5%<br><br>
-                     <em style="color:#555; font-size:0.9em;">Cloud Database Match. / 雲端資料庫匹配。</em>`
+                    "Search Big Data / 在線搜尋<br><span style='font-size: 0.7em; color:#1976d2;'>大數據比對</span>", 
+                    `<strong>Likely Name / 可能名稱:</strong> ${plantQuery}<br><br>
+                     <p>We are not 100% sure. Click below to search online databases:</p>
+                     <p class='bilingual-text'>我們無法完全確定。請點擊下方連結於線上資料庫查詢：</p>
+                     
+                     <div style="margin-top: 15px; display: flex; flex-direction: column; gap: 10px;">
+                        <a href="${hkHerbariumSearchUrl}" target="_blank" style="padding: 10px; background-color: #2e7d32; color: white; text-decoration: none; border-radius: 5px; text-align: center;">
+                            🔍 Search in HK Plant Database<br>
+                            <span style="font-size: 0.8em;">在香港植物資料庫中搜尋</span>
+                        </a>
+                        
+                        <a href="${generalSearchUrl}" target="_blank" style="padding: 10px; background-color: #1976d2; color: white; text-decoration: none; border-radius: 5px; text-align: center;">
+                            🌐 General Web Search<br>
+                            <span style="font-size: 0.8em;">一般網路搜尋</span>
+                        </a>
+                     </div>
+                     <br>
+                     <em style="color:#555; font-size:0.8em;">Redirecting to global Big Data / 導向至全球大數據</em>`
                 );
-            }, 2500); // Simulate a 2.5 second API loading time
+            }, 2000); 
         }
 
         // --- UI Helper Functions ---
