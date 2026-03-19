@@ -944,8 +944,10 @@
         }
 
         function inferPlantProfile(name) {
-            const normalized = normalizePlantName(name);
-            const matchedKey = Object.keys(hongKongPlantCatalog).find((key) => normalized.includes(key));
+            const rawName = name.trim();
+            
+            // Strictly match the name against the catalog keys. NO guessing.
+            let matchedKey = Object.keys(hongKongPlantCatalog).find((key) => rawName === key);
 
             if (matchedKey) {
                 return hongKongPlantCatalog[matchedKey];
