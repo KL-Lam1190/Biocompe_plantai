@@ -6,14 +6,14 @@
     <title>Plant Mission Notebook</title>
     <style>
         :root {
-            --deep-green: #114b37;
-            --leaf: #2c8f5d;
-            --mint: #cde8d8;
-            --sun: #f0bb4f;
-            --ink: #17332a;
-            --paper: #f8f7f1;
+            --deep-green: #1f4031;
+            --leaf: #38825c;
+            --mint: #e2f0e7;
+            --sun: #f0c365;
+            --ink: #2b3a32;
+            --paper: #f9fbf4;
             --danger: #b5382f;
-            --card-shadow: 0 10px 20px rgba(13, 55, 40, 0.15);
+            --card-shadow: 0 10px 25px rgba(31, 64, 49, 0.12);
         }
 
         * {
@@ -23,9 +23,9 @@
         body {
             margin: 0;
             min-height: 100vh;
-            font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+            font-family: "Nunito", "Segoe UI", sans-serif;
             color: var(--ink);
-            background: radial-gradient(circle at 20% 20%, #fff7d6 0%, #f7f4e6 40%, #d5ebdf 100%);
+            background: linear-gradient(135deg, #fdfbf5 0%, #e6efe8 100%);
         }
 
         .page {
@@ -244,8 +244,11 @@
         }
 
         .book-body {
-            padding: 10px;
-            text-align: left;
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Nunito", "Segoe UI", sans-serif;
+            color: var(--ink);
+            background: linear-gradient(135deg, #fdfbf5 0%, #e6efe8 100%);
         }
 
         .book-name {
@@ -512,6 +515,25 @@
         </div>
     </div>
 
+
+    <div id="tutorialModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-head">
+                <h3 style="margin:0; color:var(--deep-green);">How to Use</h3>
+                <button class="close-btn" type="button" onclick="document.getElementById('tutorialModal').style.display='none'">&times;</button>
+            </div>
+            <div style="margin-top: 15px; line-height: 1.6; color: #2f4d40;">
+                <p>Welcome to the Plant Mission Notebook!</p>
+                <ol>
+                    <li><strong>Start Camera:</strong> Click to turn on your device's camera. You can select different cameras (front/rear) from the dropdown above if available.</li>
+                    <li><strong>Scan Plant:</strong> Point the camera at a clear leaf or flower, then click Scan. The system ensures the image contains at least 40% green area.</li>
+                    <li><strong>Upload Photo:</strong> Alternatively, upload an existing plant photo from your gallery.</li>
+                    <li><strong>Unlock Profile:</strong> Once successfully scanned, ecological data (Hong Kong / China conservation status, flowering/fruiting info) will be synced to your Notebook.</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
     <div id="toast" class="toast"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
@@ -528,446 +550,175 @@
         ];
 
         const hongKongPlantCatalog = {
-            "incense tree": {
-                type: "常綠喬木 (Evergreen Tree)",
-                shengTai: "常見於風水林及郊野叢林",
-                hua: "黃綠色、鐘形",
-                huaQi: "4月 - 5月",
-                guoShi: "卵形木質蒴果",
-                guoQi: "7月 - 8月",
-                hkStatus: "Native | Species of Conservation Concern",
-                hkRareCategory: "NT 近危",
-                cnRedBookCategory: "漸危 (V)",
-                publicNote: "土沉香 (Aquilaria sinensis) 是香港早期香木業重要樹種，野外群落受法例保護。",
-                rarePrecious: true,
-                rarityNote: "列入《香港稀有及珍貴植物》近危 (NT)；列入《中國植物紅皮書》漸危 (V)；同時列入《國家重點保護野生植物名錄》。"
-            },
-            "hong kong balsam": {
-                type: "草本植物 (Herb)",
-                shengTai: "生長於山谷林下潮濕地及溪邊",
-                hua: "紫紅色、形似漏斗",
-                huaQi: "8月 - 10月",
-                guoShi: "蒴果",
-                guoQi: "10月 - 11月",
-                hkStatus: "Endemic (香港特有種) | Species of Conservation Concern",
-                hkRareCategory: "EN 瀕危",
-                cnRedBookCategory: "未列入 (但受本地高度保護)",
-                publicNote: "香港鳳仙 (Impatiens hongkongensis) 首次在香港島發現，屬極受保護的本地特有品種。",
-                rarePrecious: true,
-                rarityNote: "香港特有種，受林務規例保護."
-            },
-            "grano": {
-                type: "常綠灌木或小喬木",
-                shengTai: "海岸及次生林邊緣",
-                hua: "白色或淡黃色小花",
-                huaQi: "春季",
-                guoShi: "核果，熟時黑紫色",
-                guoQi: "夏秋季",
-                hkStatus: "Native native species in specific coastal areas",
-                hkRareCategory: "LC 無危",
-                cnRedBookCategory: "LC 無危",
-                publicNote: "常見的灌木，果實為許多野鳥的食物來源。",
-                rarePrecious: false,
-                rarityNote: "普遍野生品種，未列入稀有級別。"
-            },
-            rose: {
-                type: "灌木 (Flowering Shrub)",
-                shengTai: "廣泛栽培",
-                hua: "多種顏色",
-                huaQi: "幾乎全年",
-                guoShi: "薔薇果",
-                guoQi: "秋季",
-                hkStatus: "Common cultivated ornamental in Hong Kong gardens.",
-                hkRareCategory: "LC 無危",
-                cnRedBookCategory: "LC 無危",
-                publicNote: "園藝觀賞植物",
-                rarePrecious: false,
-                rarityNote: "外來引入培植種。" 
-            },
-            sunflower: {
-                type: "Flowering Annual",
-                hkStatus: "Introduced ornamental and educational planting species in Hong Kong.",
-                publicNote: "Observe if flower head orientation changes with sunlight.",
-                rarePrecious: false,
-                rarityNote: "Not usually listed as a rare or precious species in Hong Kong."
-            },
-            cactus: {
-                type: "Succulent",
-                hkStatus: "Mostly cultivated exotic species in Hong Kong.",
-                publicNote: "Use stem shape and spine spacing to identify type.",
-                rarePrecious: false,
-                rarityNote: "Mostly ornamental imports; not generally rare in Hong Kong context."
-            },
-            fern: {
-                type: "Spore Plant",
-                hkStatus: "Many native fern species occur in humid Hong Kong habitats.",
-                publicNote: "Look below fronds for sori (spore clusters).",
-                rarePrecious: false,
-                rarityNote: "Some local fern species can be conservation-sensitive, species-level check needed."
-            },
-            moss: {
-                type: "Bryophyte",
-                hkStatus: "Common in damp shaded zones across Hong Kong.",
-                publicNote: "Texture and color shift after rain can help recognition.",
-                rarePrecious: false,
-                rarityNote: "Generally common micro-habitat plants; species-level rarity may vary."
-            },
-            orchid: {
-                type: "Flowering Epiphyte",
-                hkStatus: "Some wild orchids in Hong Kong are conservation-sensitive.",
-                publicNote: "Do not pick wild orchids; photograph and record location only.",
-                rarePrecious: true,
-                rarityNote: "Potentially rare/precious in Hong Kong; treat as conservation-sensitive."
-            },
-            bauhinia: {
-                type: "Flowering Tree",
-                hkStatus: "Iconic cultivated tree in Hong Kong urban landscapes.",
-                publicNote: "Leaf shape is usually butterfly-like with two rounded lobes.",
-                rarePrecious: false,
-                rarityNote: "Commonly planted in Hong Kong and not usually flagged as rare."
-            },
-            banyan: {
-                type: "Evergreen Tree",
-                hkStatus: "Common roadside and village tree in Hong Kong.",
-                publicNote: "Aerial roots and broad crown are key visual traits.",
-                rarePrecious: false,
-                rarityNote: "Common urban and village tree, not typically rare."
-            },
-            bamboo: {
-                type: "Grass Family",
-                hkStatus: "Widely cultivated and naturalized in parts of Hong Kong.",
-                publicNote: "Node spacing and cane color help separate species.",
-                rarePrecious: false,
-                rarityNote: "Usually not listed as rare in Hong Kong landscaping context."
-            },
-
-            // ── 秀英竹 ───────────────────────────────────────────────
             "秀英竹": {
-                type: "竹類 (Bamboo)",
-                shengTai: "生長於山坡林地及灌叢邊緣",
-                hua: "罕見開花（竹類一生開花一次）",
-                huaQi: "不定期",
-                guoShi: "穎果",
-                guoQi: "不定期",
-                hkStatus: "Native | Species of Conservation Concern in Hong Kong",
-                hkRareCategory: "VU 易危",
-                cnRedBookCategory: "沒有列入",
-                publicNote: "秀英竹是本港稀有竹類，多見於郊野林緣，受本地植物保護法例保障。",
-                rarePrecious: true,
-                rarityNote: "列入《香港稀有及珍貴植物》易危 (VU) 級別。"
+                        "type": "禾本科竹亞科 (Bamboo)",
+                        "shengTai": "生長於山地林下或灌叢",
+                        "hua": "不常見",
+                        "huaQi": "不詳",
+                        "guoShi": "穎果",
+                        "guoQi": "不詳",
+                        "hkStatus": "Native (香港原生種)",
+                        "hkRareCategory": "EN 瀕危",
+                        "cnRedBookCategory": "未評估",
+                        "publicNote": "秀英竹是香港特有的珍稀竹類，以植物學家胡秀英命名。",
+                        "rarePrecious": true,
+                        "rarityNote": "受《林務規例》保護，分佈極為狹窄。"
             },
-            "xiu ying bamboo": {
-                type: "竹類 (Bamboo)",
-                shengTai: "生長於山坡林地及灌叢邊緣",
-                hua: "罕見開花（竹類一生開花一次）",
-                huaQi: "不定期",
-                guoShi: "穎果",
-                guoQi: "不定期",
-                hkStatus: "Native | Species of Conservation Concern in Hong Kong",
-                hkRareCategory: "VU 易危",
-                cnRedBookCategory: "沒有列入",
-                publicNote: "秀英竹 is a rare Hong Kong bamboo protected by local plant legislation.",
-                rarePrecious: true,
-                rarityNote: "Listed as Vulnerable (VU) in HK Rare & Precious Plants."
-            },
-
-            // ── 大嶼八角 ─────────────────────────────────────────────
-            "大嶼八角": {
-                type: "常綠喬木 / 灌木 (Evergreen Tree/Shrub)",
-                shengTai: "生長於大嶼山山地森林",
-                hua: "黃白色",
-                huaQi: "春季",
-                guoShi: "星形聚合果",
-                guoQi: "秋季",
-                hkStatus: "Endemic (大嶼山特有種) | Species of Conservation Concern",
-                hkRareCategory: "EN 瀕危",
-                cnRedBookCategory: "EN 瀕危",
-                publicNote: "大嶼八角 (Illicium angustisepalum) 為大嶼山特有種，數量極稀少，受嚴格保護。",
-                rarePrecious: true,
-                rarityNote: "列入《香港稀有及珍貴植物》瀕危 (EN)；中國境內現狀瀕危 (EN)。"
-            },
-            "lantau star anise": {
-                type: "常綠喬木 / 灌木 (Evergreen Tree/Shrub)",
-                shengTai: "生長於大嶼山山地森林",
-                hua: "黃白色",
-                huaQi: "春季",
-                guoShi: "星形聚合果",
-                guoQi: "秋季",
-                hkStatus: "Endemic to Lantau Island | Species of Conservation Concern",
-                hkRareCategory: "EN 瀕危",
-                cnRedBookCategory: "EN 瀕危",
-                publicNote: "Illicium angustisepalum (大嶼八角) is endemic to Lantau Island, extremely rare.",
-                rarePrecious: true,
-                rarityNote: "Listed as Endangered (EN) in HK Rare & Precious Plants; China status EN."
-            },
-            "illicium": {
-                type: "常綠喬木 / 灌木 (Evergreen Tree/Shrub)",
-                hkStatus: "Endemic to Lantau Island | Species of Conservation Concern",
-                hkRareCategory: "EN 瀕危",
-                cnRedBookCategory: "EN 瀕危",
-                publicNote: "Illicium angustisepalum (大嶼八角) is endemic to Lantau Island, extremely rare.",
-                rarePrecious: true,
-                rarityNote: "Listed as Endangered (EN) in HK Rare & Precious Plants; China status EN."
-            },
-
-            // ── 香港細辛 ─────────────────────────────────────────────
-            "香港細辛": {
-                type: "草本植物 (Herb)",
-                shengTai: "生長於山地林下陰濕腐殖質豐富的土壤",
-                hua: "紫褐色、馬蹄形",
-                huaQi: "冬末至春季",
-                guoShi: "蒴果",
-                guoQi: "春季",
-                hkStatus: "Endemic (香港特有種) | Species of Conservation Concern",
-                hkRareCategory: "CR 極危",
-                cnRedBookCategory: "沒有列入",
-                publicNote: "香港細辛 (Asarum hongkongense) 是香港特有種，數量極少，野外記錄稀缺，屬極危保育物種。",
-                rarePrecious: true,
-                rarityNote: "列入《香港稀有及珍貴植物》極危 (CR) 級別。"
-            },
-            "hong kong asarum": {
-                type: "Herb",
-                shengTai: "生長於山地林下陰濕腐殖質豐富的土壤",
-                hua: "紫褐色、馬蹄形",
-                huaQi: "冬末至春季",
-                guoShi: "蒴果",
-                guoQi: "春季",
-                hkStatus: "Endemic to Hong Kong | Species of Conservation Concern",
-                hkRareCategory: "CR 極危",
-                cnRedBookCategory: "沒有列入",
-                publicNote: "Asarum hongkongense is endemic to Hong Kong with a critically low wild population.",
-                rarePrecious: true,
-                rarityNote: "Listed as Critically Endangered (CR) in HK Rare & Precious Plants."
-            },
-
-            // ── 畫筆南星 ─────────────────────────────────────────────
-            "畫筆南星": {
-                type: "草本植物 / 球莖植物 (Herb / Geophyte)",
-                shengTai: "生長於山谷林下潮濕環境",
-                hua: "肉穗花序，具佛焰苞",
-                huaQi: "春季",
-                guoShi: "漿果串，成熟時紅色",
-                guoQi: "夏秋季",
-                hkStatus: "Native | Species of Conservation Concern in Hong Kong",
-                hkRareCategory: "VU 易危",
-                cnRedBookCategory: "沒有列入",
-                publicNote: "畫筆南星 (Arisaema sp.) 是本港稀有球莖植物，色彩鮮豔的佛焰苞是辨認特徵之一。",
-                rarePrecious: true,
-                rarityNote: "列入《香港稀有及珍貴植物》易危 (VU) 級別。"
-            },
-            "arisaema": {
-                type: "Herb / Geophyte",
-                shengTai: "生長於山谷林下潮濕環境",
-                hua: "肉穗花序，具佛焰苞",
-                huaQi: "春季",
-                guoShi: "漿果串，成熟時紅色",
-                guoQi: "夏秋季",
-                hkStatus: "Native | Species of Conservation Concern in Hong Kong",
-                hkRareCategory: "VU 易危",
-                cnRedBookCategory: "沒有列入",
-                publicNote: "Arisaema (畫筆南星) is a rare geophyte found in shaded wet valleys in Hong Kong.",
-                rarePrecious: true,
-                rarityNote: "Listed as Vulnerable (VU) in HK Rare & Precious Plants."
-            },
-
-            // ── 棱果花 ───────────────────────────────────────────────
-            "棱果花": {
-                type: "灌木 (Shrub)",
-                shengTai: "生長於山坡灌叢及次生林",
-                hua: "粉紅至紫紅色",
-                huaQi: "春夏季",
-                guoShi: "棱角形蒴果",
-                guoQi: "秋季",
-                hkStatus: "Native | Listed in HK Rare & Precious Plants (LC)",
-                hkRareCategory: "LC 無危",
-                cnRedBookCategory: "沒有列入",
-                publicNote: "棱果花 (Barthea barthei) 是本港特色灌木，以其獨特的棱角果實著稱。",
-                rarePrecious: false,
-                rarityNote: "列入《香港稀有及珍貴植物》無危 (LC) 級別。"
-            },
-            "barthea": {
-                type: "Shrub",
-                hkStatus: "Native | Listed in HK Rare & Precious Plants (LC)",
-                hkRareCategory: "LC 無危",
-                cnRedBookCategory: "沒有列入",
-                publicNote: "Barthea barthei (棱果花) is a native Hong Kong shrub noted for its angular fruits.",
-                rarePrecious: false,
-                rarityNote: "Listed as Least Concern (LC) in HK Rare & Precious Plants."
-            },
-
-            // ── 長葉茅膏花 ───────────────────────────────────────────
-            "長葉茅膏花": {
-                type: "食蟲植物 / 草本 (Carnivorous Plant / Herb)",
-                shengTai: "生長於山頂及山坡的酸性濕地",
-                hua: "白色或粉紅色小花",
-                huaQi: "春夏季",
-                guoShi: "蒴果",
-                guoQi: "夏季",
-                hkStatus: "Native carnivorous plant found in Hong Kong acidic wetland habitats.",
-                hkRareCategory: "LC 無危",
-                cnRedBookCategory: "LC 無危",
-                publicNote: "長葉茅膏花 (Drosera) 以葉面黏液捕捉昆蟲，是本港山頂濕地的獨特食蟲植物。",
-                rarePrecious: false,
-                rarityNote: "中國境內現狀無危 (LC)。"
-            },
-            "drosera": {
-                type: "食蟲植物 (Carnivorous Plant / Sundew)",
-                hkStatus: "Native carnivorous plant found in Hong Kong acidic wetland habitats.",
-                hkRareCategory: "LC 無危",
-                cnRedBookCategory: "LC 無危",
-                publicNote: "Drosera (長葉茅膏花) traps insects with sticky leaf glands on Hong Kong hilltop wetlands.",
-                rarePrecious: false,
-                rarityNote: "China status Least Concern (LC)."
-            },
-            "sundew": {
-                type: "食蟲植物 (Carnivorous Plant / Sundew)",
-                hkStatus: "Native carnivorous plant found in Hong Kong acidic wetland habitats.",
-                hkRareCategory: "LC 無危",
-                cnRedBookCategory: "LC 無危",
-                publicNote: "Sundew (長葉茅膏花) uses sticky leaf tentacles to catch insects.",
-                rarePrecious: false,
-                rarityNote: "China status Least Concern (LC)."
-            },
-
-            // ── 斑葉女貞 ─────────────────────────────────────────────
-            "斑葉女貞": {
-                type: "常綠灌木 (Evergreen Shrub)",
-                shengTai: "生長於山坡及次生林緣",
-                hua: "白色小花",
-                huaQi: "夏季",
-                guoShi: "球形核果，成熟時黑色",
-                guoQi: "秋冬季",
-                hkStatus: "Native | Listed in HK Rare & Precious Plants (LC)",
-                hkRareCategory: "LC 無危",
-                cnRedBookCategory: "沒有列入",
-                publicNote: "斑葉女貞 (Ligustrum punctifolium) 以葉面斑紋為辨識特徵，果實是野鳥食物來源之一。",
-                rarePrecious: false,
-                rarityNote: "列入《香港稀有及珍貴植物》無危 (LC) 級別。"
-            },
-            "variegated privet": {
-                type: "Evergreen Shrub",
-                hkStatus: "Native | Listed in HK Rare & Precious Plants (LC)",
-                hkRareCategory: "LC 無危",
-                cnRedBookCategory: "沒有列入",
-                publicNote: "Ligustrum punctifolium (斑葉女貞) is a native shrub identifiable by its variegated leaves.",
-                rarePrecious: false,
-                rarityNote: "Listed as Least Concern (LC) in HK Rare & Precious Plants."
-            },
-
-            // ── 南方安蘭 ─────────────────────────────────────────────
-            "南方安蘭": {
-                type: "地生蘭 (Terrestrial Orchid)",
-                shengTai: "生長於山地林下腐殖質豐富的潮濕土壤",
-                hua: "白色帶綠、唇瓣具精緻花紋",
-                huaQi: "秋冬季",
-                guoShi: "蒴果",
-                guoQi: "冬季",
-                hkStatus: "Native | Species of Conservation Concern in Hong Kong",
-                hkRareCategory: "CR 極危",
-                cnRedBookCategory: "沒有列入",
-                publicNote: "南方安蘭 (Anoectochilus sp.) 是極危保育的地生蘭，以葉面金色葉脈著稱，野外數量極少，嚴禁採集。",
-                rarePrecious: true,
-                rarityNote: "列入《香港稀有及珍貴植物》極危 (CR) 級別。"
-            },
-            "anoectochilus": {
-                type: "Terrestrial Orchid",
-                hkStatus: "Native | Species of Conservation Concern in Hong Kong",
-                hkRareCategory: "CR 極危",
-                cnRedBookCategory: "沒有列入",
-                publicNote: "Anoectochilus (南方安蘭) is a critically rare jewel orchid with gold-veined leaves. Never collect from wild.",
-                rarePrecious: true,
-                rarityNote: "Listed as Critically Endangered (CR) in HK Rare & Precious Plants."
-            },
-
-            // ── 香港巴豆 ─────────────────────────────────────────────
-            "香港巴豆": {
-                type: "灌木 (Shrub)",
-                shengTai: "生長於山坡疏林及灌叢",
-                hua: "白色小花",
-                huaQi: "春夏季",
-                guoShi: "蒴果",
-                guoQi: "夏秋季",
-                hkStatus: "Endemic (香港特有種) | Species of Conservation Concern",
-                hkRareCategory: "CR 極危",
-                cnRedBookCategory: "沒有列入",
-                publicNote: "香港巴豆 (Croton hancei) 為香港特有灌木，目前野外記錄極為稀少，屬極危物種。",
-                rarePrecious: true,
-                rarityNote: "列入《香港稀有及珍貴植物》極危 (CR) 級別。"
-            },
-            "hong kong croton": {
-                type: "Shrub",
-                hkStatus: "Endemic to Hong Kong | Species of Conservation Concern",
-                hkRareCategory: "CR 極危",
-                cnRedBookCategory: "沒有列入",
-                publicNote: "Croton hancei (香港巴豆) is endemic to Hong Kong with critically few wild records.",
-                rarePrecious: true,
-                rarityNote: "Listed as Critically Endangered (CR) in HK Rare & Precious Plants."
-            },
-
-            // ── 豬籠草 ───────────────────────────────────────────────
             "豬籠草": {
-                type: "食蟲植物 (Carnivorous Plant)",
-                shengTai: "生長於山坡貧瘠酸性土地及林緣",
-                hua: "淡黃色或紫紅色小花",
-                huaQi: "全年",
-                guoShi: "蒴果",
-                guoQi: "全年",
-                hkStatus: "Native | Species of Conservation Concern in Hong Kong",
-                hkRareCategory: "VU 易危",
-                cnRedBookCategory: "沒有列入",
-                publicNote: "豬籠草 (Nepenthes mirabilis) 是香港唯一原生食蟲植物，以獨特的捕蟲籠著稱，受本地法例嚴格保護。",
-                rarePrecious: true,
-                rarityNote: "列入《香港稀有及珍貴植物》易危 (VU) 級別。"
+                        "type": "食蟲植物 (Carnivorous Plant)",
+                        "shengTai": "生長於向陽貧瘠山坡或濕地",
+                        "hua": "總狀花序",
+                        "huaQi": "4月 - 11月",
+                        "guoShi": "蒴果",
+                        "guoQi": "8月 - 12月",
+                        "hkStatus": "Native (香港原生種)",
+                        "hkRareCategory": "VU 易危",
+                        "cnRedBookCategory": "VU 易危",
+                        "publicNote": "豬籠草能捕捉並消化昆蟲以補充營養，切勿野外採摘。",
+                        "rarePrecious": true,
+                        "rarityNote": "受香港法例第96章《林區及遊樂區條例》保護。"
             },
-            "pitcher plant": {
-                type: "食蟲植物 (Carnivorous Plant)",
-                shengTai: "生長於山坡貧瘠酸性土地及林緣",
-                hua: "淡黃色或紫紅色小花",
-                huaQi: "全年",
-                guoShi: "蒴果",
-                guoQi: "全年",
-                hkStatus: "Native | Species of Conservation Concern in Hong Kong",
-                hkRareCategory: "VU 易危",
-                cnRedBookCategory: "沒有列入",
-                publicNote: "Nepenthes mirabilis (豬籠草) is Hong Kong's only native carnivorous plant, strictly protected by local law.",
-                rarePrecious: true,
-                rarityNote: "Listed as Vulnerable (VU) in HK Rare & Precious Plants."
+            "大嶼八角": {
+                        "type": "常綠小喬木 (Evergreen Tree)",
+                        "shengTai": "生長於山地林中",
+                        "hua": "白色至淡黃色",
+                        "huaQi": "2月 - 4月",
+                        "guoShi": "蓇葖果",
+                        "guoQi": "9月 - 10月",
+                        "hkStatus": "Endemic (香港特有種)",
+                        "hkRareCategory": "CR 極危",
+                        "cnRedBookCategory": "CR 極危",
+                        "publicNote": "全球僅見於香港大嶼山，是極度瀕危的珍稀植物。",
+                        "rarePrecious": true,
+                        "rarityNote": "受香港法例第96章《林區及遊樂區條例》保護。"
             },
-            "nepenthes": {
-                type: "食蟲植物 (Carnivorous Plant)",
-                hkStatus: "Native | Species of Conservation Concern in Hong Kong",
-                hkRareCategory: "VU 易危",
-                cnRedBookCategory: "沒有列入",
-                publicNote: "Nepenthes mirabilis (豬籠草) is Hong Kong's only native pitcher plant, protected by law.",
-                rarePrecious: true,
-                rarityNote: "Listed as Vulnerable (VU) in HK Rare & Precious Plants."
+            "棱果花": {
+                        "type": "常綠灌木 (Evergreen Shrub)",
+                        "shengTai": "生長於山谷林下陰濕處",
+                        "hua": "白色或略帶粉紅",
+                        "huaQi": "夏季",
+                        "guoShi": "漿果狀",
+                        "guoQi": "秋季至冬季",
+                        "hkStatus": "Native (香港原生種)",
+                        "hkRareCategory": "LC 無危",
+                        "cnRedBookCategory": "未評估",
+                        "publicNote": "花朵造型獨特，果實具棱角，是良好的庭園觀賞植物。",
+                        "rarePrecious": false,
+                        "rarityNote": "在香港有一定分佈，但仍需保護其自然棲息地。"
             },
-
-            // ── 珊瑚菜 ───────────────────────────────────────────────
             "珊瑚菜": {
-                type: "草本植物 (Herb)",
-                shengTai: "生長於沿岸沙灘及沙質土地",
-                hua: "白色繖形花序",
-                huaQi: "春夏季",
-                guoShi: "卵形果，具木栓質翅",
-                guoQi: "夏秋季",
-                hkStatus: "Native coastal plant | Species of Conservation Concern in Hong Kong",
-                hkRareCategory: "VU 易危",
-                cnRedBookCategory: "漸危 (V)",
-                publicNote: "珊瑚菜 (Glehnia littoralis) 是本港稀見的沿海草本植物，生長於沙灘後沿，受海岸開發影響而數量下降。",
-                rarePrecious: true,
-                rarityNote: "列入《香港稀有及珍貴植物》易危 (VU)；列入《中國植物紅皮書》漸危 (V)。"
+                        "type": "多年生草本 (Perennial Herb)",
+                        "shengTai": "生長於海濱沙灘",
+                        "hua": "白色複繖形花序",
+                        "huaQi": "6月 - 7月",
+                        "guoShi": "雙懸果",
+                        "guoQi": "8月 - 9月",
+                        "hkStatus": "Native (香港原生種)",
+                        "hkRareCategory": "VU 易危",
+                        "cnRedBookCategory": "未評估",
+                        "publicNote": "根部可入藥（北沙參），因過度採挖而變得稀少。",
+                        "rarePrecious": true,
+                        "rarityNote": "生境容易受海岸發展破壞。"
             },
-            "glehnia": {
-                type: "Coastal Herb",
-                hkStatus: "Native coastal plant | Species of Conservation Concern in Hong Kong",
-                hkRareCategory: "VU 易危",
-                cnRedBookCategory: "漸危 (V)",
-                publicNote: "Glehnia littoralis (珊瑚菜) is a rare coastal herb on Hong Kong sandy shores.",
-                rarePrecious: true,
-                rarityNote: "VU in HK Rare & Precious Plants; Vulnerable (V) in China Red Data Book."
+            "斑葉女貞": {
+                        "type": "常綠灌木 (Evergreen Shrub)",
+                        "shengTai": "生長於山地林下或林緣",
+                        "hua": "白色",
+                        "huaQi": "春夏季",
+                        "guoShi": "核果",
+                        "guoQi": "秋冬季",
+                        "hkStatus": "Native (香港原生種)",
+                        "hkRareCategory": "NT 近危",
+                        "cnRedBookCategory": "未評估",
+                        "publicNote": "葉片常帶有斑紋，具觀賞價值。",
+                        "rarePrecious": true,
+                        "rarityNote": "在香港分佈有限。"
+            },
+            "畫筆南星": {
+                        "type": "多年生草本 (Perennial Herb)",
+                        "shengTai": "生長於林下陰濕地",
+                        "hua": "佛焰苞肉穗花序",
+                        "huaQi": "春季",
+                        "guoShi": "漿果",
+                        "guoQi": "夏秋季",
+                        "hkStatus": "Native (香港原生種)",
+                        "hkRareCategory": "VU 易危",
+                        "cnRedBookCategory": "未評估",
+                        "publicNote": "花序特殊，形如畫筆，整株有毒，切勿誤食。",
+                        "rarePrecious": true,
+                        "rarityNote": "分佈範圍狹窄，受棲息地破壞威脅。"
+            },
+            "香港細辛": {
+                        "type": "多年生草本 (Perennial Herb)",
+                        "shengTai": "生長於山谷林下陰濕處",
+                        "hua": "紫褐色",
+                        "huaQi": "冬季至春季",
+                        "guoShi": "蒴果",
+                        "guoQi": "春季至夏季",
+                        "hkStatus": "Endemic (香港特有種)",
+                        "hkRareCategory": "EN 瀕危",
+                        "cnRedBookCategory": "EN 瀕危",
+                        "publicNote": "香港特有的細辛屬植物，具有獨特的花朵結構。",
+                        "rarePrecious": true,
+                        "rarityNote": "受香港法例第96章《林區及遊樂區條例》保護。"
+            },
+            "長葉矛膏菜": {
+                        "type": "食蟲植物 (Carnivorous Plant)",
+                        "shengTai": "生長於向陽濕地",
+                        "hua": "粉紅色或白色",
+                        "huaQi": "夏秋季",
+                        "guoShi": "蒴果",
+                        "guoQi": "秋季",
+                        "hkStatus": "Native (香港原生種)",
+                        "hkRareCategory": "EN 瀕危",
+                        "cnRedBookCategory": "未評估",
+                        "publicNote": "葉片具腺毛，能分泌黏液捕捉微小昆蟲。",
+                        "rarePrecious": true,
+                        "rarityNote": "濕地生境受破壞，導致數量大減。"
+            },
+            "南方安蘭": {
+                        "type": "地生蘭 (Terrestrial Orchid)",
+                        "shengTai": "生長於林下陰濕地",
+                        "hua": "小形，不顯眼",
+                        "huaQi": "春季",
+                        "guoShi": "蒴果",
+                        "guoQi": "夏季",
+                        "hkStatus": "Native (香港原生種)",
+                        "hkRareCategory": "VU 易危",
+                        "cnRedBookCategory": "未評估",
+                        "publicNote": "一種原始的蘭科植物，對研究蘭科演化具重要意義。",
+                        "rarePrecious": true,
+                        "rarityNote": "蘭科植物全科受保護。"
+            },
+            "香港巴豆": {
+                        "type": "常綠灌木或小喬木 (Evergreen Shrub/Tree)",
+                        "shengTai": "生長於山地林中",
+                        "hua": "黃綠色",
+                        "huaQi": "春季",
+                        "guoShi": "蒴果",
+                        "guoQi": "夏季",
+                        "hkStatus": "Endemic (香港特有種)",
+                        "hkRareCategory": "CR 極危",
+                        "cnRedBookCategory": "CR 極危",
+                        "publicNote": "曾被認為已滅絕，後於青衣島再次發現，極度稀有。",
+                        "rarePrecious": true,
+                        "rarityNote": "受香港法例第96章《林區及遊樂區條例》保護。"
+            },
+            "土沉香": {
+                        "type": "常綠喬木 (Evergreen Tree)",
+                        "shengTai": "常見於風水林及郊野叢林",
+                        "hua": "黃綠色、鐘形",
+                        "huaQi": "4月 - 5月",
+                        "guoShi": "卵形木質蒴果",
+                        "guoQi": "7月 - 8月",
+                        "hkStatus": "Native (香港原生種)",
+                        "hkRareCategory": "NT 近危",
+                        "cnRedBookCategory": "VU 易危",
+                        "publicNote": "昔日香港香木業重要樹種，野外群落常遭非法砍伐。",
+                        "rarePrecious": true,
+                        "rarityNote": "受《林區及遊樂區條例》及《保護瀕危動植物物種條例》保護。"
             }
-        };
+};
 
         let model;
         let webcam;
@@ -978,7 +729,8 @@
             points: 0,
             streak: 0,
             missionsDone: 0,
-            book: []
+            book: [],
+            missionScannedPlants: []
         };
 
         function getCurrentMission() {
@@ -1124,21 +876,28 @@
             const ctx = tempCanvas.getContext("2d");
             tempCanvas.width = imageSource.width || imageSource.videoWidth || 360;
             tempCanvas.height = imageSource.height || imageSource.videoHeight || 360;
-            if (tempCanvas.width === 0 || tempCanvas.height === 0) return 100; // Skip if invalid
+            if (tempCanvas.width === 0 || tempCanvas.height === 0) return 100;
             
             ctx.drawImage(imageSource, 0, 0, tempCanvas.width, tempCanvas.height);
             const data = ctx.getImageData(0, 0, tempCanvas.width, tempCanvas.height).data;
             let greenPixels = 0;
+            let totalPixels = tempCanvas.width * tempCanvas.height;
+            
+            // Computer Vision Heuristic:
+            // Relaxed green criteria to account for shadows, highlights and different plant hues (like yellowish green or dark leaves)
             for (let i = 0; i < data.length; i += 4) {
                 const r = data[i];
                 const g = data[i + 1];
                 const b = data[i + 2];
-                // basic green threshold
-                if (g > r * 1.05 && g > b * 1.05 && g > 30) {
+                
+                // HSL/HSV approximation for green hue dominance
+                // A pixel is considered 'plant-like' if Green is the dominant color, 
+                // OR if it's a dark/shadow plant area (preventing rejection of real plants under bad lighting)
+                if ((g > r * 0.9 && g > b * 0.8 && g > 20) || (g > 50 && r < 100 && b < 100)) {
                     greenPixels++;
                 }
             }
-            return (greenPixels / (tempCanvas.width * tempCanvas.height)) * 100;
+            return (greenPixels / totalPixels) * 100;
         }
 
         function analyzeColorVariance(imageSource) {
@@ -1152,7 +911,7 @@
 
             ctx.drawImage(imageSource, 0, 0, tempCanvas.width, tempCanvas.height);
             const data = ctx.getImageData(0, 0, tempCanvas.width, tempCanvas.height).data;
-
+            
             let count = 0;
             let sum = 0;
             let sumSq = 0;
@@ -1168,7 +927,7 @@
                 sumSq += brightness * brightness;
                 count += 1;
 
-                if (g > r * 1.05 && g > b * 1.05 && g > 30) {
+                if ((g > r * 0.9 && g > b * 0.8 && g > 20) || (g > 50 && r < 100 && b < 100)) {
                     greenPixels += 1;
                 }
             }
@@ -1196,26 +955,23 @@
         }
 
         async function runPrediction(imageSource, imageData) {
-            const greenPct = calculateGreenPercentage(imageSource);
-            if (greenPct < 40) {
-                updateModal(
-                    "Not Enough Green / Not a Plant",
-                    `This photo has only ${greenPct.toFixed(1)}% green area. A plant photo must be >40% green.`
-                );
-                showToast("Not enough green.", true);
+            const quality = analyzeColorVariance(imageSource);
+            const greenPct = quality.greenPct;
+            
+            // Validate if it is actually a plant using Computer Vision heuristics
+            // Plants are rarely perfectly flat colors, they have texture (variance)
+            if (greenPct < 15) {
+                updateModal("Not a Plant Detected", `We couldn't detect enough plant-like features (Green area: ${greenPct.toFixed(1)}%). Please make sure the plant is clearly visible and well-lit.`);
+                showToast("Not enough plant area detected.", true);
                 return;
             }
 
-            const quality = analyzeColorVariance(imageSource);
-            const isFlatGreenSurface = quality.greenPct > 55 && quality.variance < 220;
-            if (isFlatGreenSurface) {
+            const isFlatColorSurface = quality.greenPct > 40 && quality.variance < 100;
+            if (isFlatColorSurface) {
                 game.streak = 0;
                 renderStats();
-                updateModal(
-                    "Sorry, Not Able",
-                    "Sorry, it is not able to identify this image. It looks like a flat green surface, not a clear plant target."
-                );
-                showToast("Sorry, it is not able to identify this image.", true);
+                updateModal("Invalid Photo", "This looks like a flat artificial surface (like a green wall or paper) because it lacks natural plant texture and shadows. Please scan a real plant.");
+                showToast("Rejected: Flat artificial surface detected.", true);
                 return;
             }
 
@@ -1271,9 +1027,21 @@
             const mission = getCurrentMission();
             const confidence = bestMatch.probability;
             const confidencePct = (confidence * 100).toFixed(1);
+            
+            const normalizedFoundName = normalizePlantName(bestMatch.className);
+            if (game.missionScannedPlants.includes(normalizedFoundName)) {
+                updateModal(
+                    "Already Scanned",
+                    `You already scanned a <b>${bestMatch.className}</b> for this mission. Please find a different plant to complete the mission!`
+                );
+                showToast("Already scanned this plant for the current mission.", true);
+                return;
+            }
+
             const isMissionSuccess = confidence >= mission.minConfidence;
 
             if (isMissionSuccess) {
+                game.missionScannedPlants.push(normalizedFoundName);
                 game.missionProgress += 1;
                 game.streak += 1;
                 game.points += 10;
@@ -1285,6 +1053,7 @@
                     game.missionsDone += 1;
                     game.missionIndex = Math.min(game.missionIndex + 1, missions.length - 1);
                     game.missionProgress = 0;
+                    game.missionScannedPlants = [];
                     unlockText = `<br><br><strong>Mission unlocked:</strong> ${mission.name} completed! Bonus +${mission.points} points.`;
                     showToast("Mission unlocked. New mission available.");
                 } else {
